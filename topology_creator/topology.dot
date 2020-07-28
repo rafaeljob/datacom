@@ -1,9 +1,0 @@
-graph vx {
-"spine01" [config="./helper_scripts/config_switch_bgp.sh", function="spine", memory="500", os="hashicorp/bionic64", vagrant="eth1", version="1.0.282"];
-"leaf01" [config="./helper_scripts/config_switch_bgp.sh", function="leaf", memory="500", os="hashicorp/bionic64", vagrant="eth1", version="1.0.282"];
-"host01" [config="./helper_scripts/config_server.sh", function="host", memory="500", os="hashicorp/bionic64", vagrant="eth1", version="1.0.282"];
-"host02" [config="./helper_scripts/config_server.sh", function="host", memory="500", os="hashicorp/bionic64", vagrant="eth1", version="1.0.282"];
-"spine01":"swp1" -- "leaf01":"swp50";
-"leaf01":"swp1" -- "host01":"eth1";
-"leaf01":"swp2" -- "host02":"eth1";
-}

@@ -213,11 +213,36 @@ def create_config_files():
 	print_create_temp()
 	for device in devices:
 		try:
-			path= TEMP_PATH + device.get_device_name()
-				os.mkdir(path=path)
+			path = TEMP_PATH + device.get_device_name()
+			os.mkdir(path=path)
+			write_zebra_file(device=device, path=path)
 		except Exception as e:
 			print_fail(e)
 			exit(1)	
+
+def write_zebra_file(device, path):
+	try:
+		file = open(path + "/zebra.conf", "w")
+		file.write("hostname " + device.get_device_name() + "\n")
+		file.write("password zebra\n")
+		file.write("!\n")
+		for interface in device.get_interfaces():
+			file.write("interface " + interface.get_local_interface() + "\n")
+			if interface.get_remote_device() == 'host':
+				file.write(" ip address " + interface.get_local_ip() + "/24\n")
+			else:	#pra spine e leaf	
+				file.write(" ip address " + interface.get_local_ip() + "/31\n")
+			file.write("!\n")		
+		file.write("interface lo\n")
+		file.write("!\n")
+		file.write("ip forwarding\n")
+		file.write("!\n")
+		file.write("!\n")
+		file.write("line vty\n")
+		file.write("!\n")	
+	except Exception as e:
+			print_fail(e)
+			exit(1)		
 
 def add_double_quotes(string):
 	return '"' + string + '"' 
