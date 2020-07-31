@@ -15,7 +15,8 @@ import argparse
 import bcolors
 import os
 import pydotplus
-import shutil
+import jinja2
+
 ##
 #GLOBAL VARS
 ##
@@ -31,6 +32,10 @@ VERSION = "0.0.1"
 SPINE_START_IP = "192.168."
 LEAF_START_IP = "172.16."
 TEMP_PATH = "./temp_scripts/"
+ZEBRA_TEMPLATE = "./templates/zebra_template.j2"
+BGPD_TEMPLATE = "./templates/bgpd_template.j2"
+
+##
 #PRINTS
 ##
 
@@ -119,7 +124,6 @@ def parser():
 	print("\tinput: %s" % ARG_STRING)
 
 def create_machine():
-
 	print_create_machine()
 
 	for i in range(1, SPINE_NUM+1):
@@ -215,43 +219,54 @@ def create_config_files():
 				exit(1)
 
 	print_create_temp()
+	spine_asi = 65000
+	leaf_asi = 65011
 	for device in devices:
 		try:
 			path = TEMP_PATH + device.get_device_name()
 			os.mkdir(path=path)
-			write_zebra_file(device=device, path=path)
+			if device.get_function() != 'host':
+				write_zebra_file(device=device, path=path)
+				if device.get_function() == 'spine':
+					write_bgpd_file(device=device, path=path, asi=65000)
+				#elif device.get_function() == 'leaf':	
 		except Exception as e:
 			print_fail(e)
 			exit(1)	
 
-def write_zebra_file(device, path):
-	try:
-		file = open(path + "/zebra.conf", "w")
-		file.write("hostname " + device.get_device_name() + "\n")
-		file.write("password zebra\n")
-		file.write("!\n")
-		for interface in device.get_interfaces():
-			file.write("interface " + interface.get_local_interface() + "\n")
-			if interface.get_remote_device() == 'host':
-				file.write(" ip address " + interface.get_local_ip() + "/24\n")
-			else:	#pra spine e leaf	
-				file.write(" ip address " + interface.get_local_ip() + "/31\n")
-			file.write("!\n")		
-		file.write("interface lo\n")
-		file.write("!\n")
-		file.write("ip forwarding\n")
-		file.write("!\n")
-		file.write("!\n")
-		file.write("line vty\n")
-		file.write("!\n")	
+def write_bgpd_file(device, path, asi):
+	try:		
+		#le arquivo do template
+		template = jinja2.Template(open(BGPD_TEMPLATE).read())
+		#renderiza o template lido previamente com as informacoes extraidas da topologia
+		try:
+			with open(path + "/bgpd.conf", 'w') as outfile:
+				outfile.write(template.render(device=device, asi=asi, router_id=0, as_remote=0))
+		except Exception as e:
+			print_fail(e)
+			exit(1)
 	except Exception as e:
 			print_fail(e)
-			exit(1)		
+			exit(1)
+
+def write_zebra_file(device, path):
+	try:		
+		#le arquivo do template
+		template = jinja2.Template(open(ZEBRA_TEMPLATE).read())
+		#renderiza o template lido previamente com as informacoes extraidas da topologia
+		try:
+			with open(path + "/zebra.conf", 'w') as outfile:
+				outfile.write(template.render(device=device))
+		except Exception as e:
+			print_fail(e)
+			exit(1)
+	except Exception as e:
+			print_fail(e)
+			exit(1)						
 
 def add_double_quotes(string):
 	return '"' + string + '"' 
 
-#"tor-A" [function="leaf" vagrant="eth1" os="hashicorp/bionic64" version="1.0.282" memory="500" config="./helper_scripts/config_production_switch.sh" ]
 def create_node(device):
 	node = pydotplus.graphviz.Node(name=add_double_quotes(device.get_device_name()), 
 									obj_dict=None)
@@ -263,7 +278,6 @@ def create_node(device):
 	node.set('config', device.get_config() )
 	return node
 
-#"tor-A":"swp50" -- "tor-B":"swp49"
 def create_edge(src_dev, rmt_dev, src_i, rmt_i):
 	src_str = '"' + src_dev + '"' + ':' + '"' + src_i + '"'
 	rmt_str = '"' + rmt_dev + '"' + ':' + '"' + rmt_i + '"'
@@ -290,27 +304,9 @@ def write_graph():
 		graph.write(path="./topology.dot", prog='dot', format='raw')
 	except Exception as e:
 		print_fail(e)
-		#print(bcolors.FAIL + "\t#  " + bcolors.END + "ERROR: " + "(%s)", e)
 		exit(1)	
 
 def main():
-	'''#dev = Device("dev1")
-	rout = Router("tor-B", 800, "hashicorp/bionic64", "127.0.0.1", "eth1", 
-		"./helper_scripts/config_production_switch.sh", "leaf", "1.0.282")
-	rout2 = Router()
-
-	rout.print_info()
-	rout2.print_info()
-	rout2.set_host_name("tor-A")
-	rout2.print_info()
-
-	int1 = Interface("swp1", "127.0.0.1", 8002, "44:38:39:00:00:08", 
-				"serve-A0", "eth1", "127.0.0.1", 9002)
-	int2 = Interface("swp2", "127.0.0.1", 8004, "44:38:39:00:00:0C", 
-				"serve-A1", "eth1", "127.0.0.1", 9004)
-	rout.append_interface(int1)
-	rout.append_interface(int2)
-	rout.print_info()'''
 	os.system('color 7')		
 	parser()
 	create_machine()
