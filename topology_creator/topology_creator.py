@@ -218,6 +218,12 @@ def create_config_files():
 			except Exception as e:
 				print_fail(e)
 				exit(1)
+	else:
+		try:
+			os.mkdir(path=TEMP_PATH)
+		except Exception as e:
+				print_fail(e)
+				exit(1)				
 
 	print_create_temp()
 	spine_asi = 65000
