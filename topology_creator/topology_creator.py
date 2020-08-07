@@ -34,6 +34,7 @@ LEAF_START_IP = "172.16."
 TEMP_PATH = "./temp_scripts/"
 ZEBRA_TEMPLATE = "./templates/zebra_template.j2"
 BGPD_TEMPLATE = "./templates/bgpd_template.j2"
+HOST_TEMPLATE = "./templates/host_template.j2"
 
 ##
 #PRINTS
@@ -150,7 +151,7 @@ def create_interface():
 	spine_leaf = 1
 	host_list = []
 
-	spine_local_machine_ip = 1
+	spine_local_machine_ip = 0		######1
 	leaf_local_network_ip = 1
 
 	for i in range(0, len(devices)):
@@ -229,7 +230,9 @@ def create_config_files():
 				write_zebra_file(device=device, path=path)
 				if device.get_function() == 'spine':
 					write_bgpd_file(device=device, path=path, asi=65000)
-				#elif device.get_function() == 'leaf':	
+				#elif device.get_function() == 'leaf':
+			else:
+				write_host_file(device=device, path=path)		
 		except Exception as e:
 			print_fail(e)
 			exit(1)	
@@ -262,7 +265,22 @@ def write_zebra_file(device, path):
 			exit(1)
 	except Exception as e:
 			print_fail(e)
-			exit(1)						
+			exit(1)
+
+def write_host_file(device, path):
+	try:		
+		#le arquivo do template
+		template = jinja2.Template(open(HOST_TEMPLATE).read())
+		#renderiza o template lido previamente com as informacoes extraidas da topologia
+		try:
+			with open(path + "/host.sh", 'w') as outfile:
+				outfile.write(template.render(device=device))
+		except Exception as e:
+			print_fail(e)
+			exit(1)
+	except Exception as e:
+			print_fail(e)
+			exit(1)									
 
 def add_double_quotes(string):
 	return '"' + string + '"' 

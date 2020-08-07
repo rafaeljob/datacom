@@ -1,0 +1,7 @@
+#!/bin/bash
+
+echo ">>>Deleting Default Gateway"
+ip route del 0/0
+
+echo ">>>Adding New Deafult Gateway"
+{% for interface in device.get_interfaces() %}ip route add 0/0 via {{interface.get_remote_ip()}} dev {{interface.get_local_interface()}}{% endfor %}
