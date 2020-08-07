@@ -25,20 +25,20 @@ EOT
 echo ">>>Updating"
 apt-get update
 
-echo">>>Autoremove"
-apt-get autoremove
+#echo">>>Autoremove"
+#apt-get autoremove
 
-echo">>>Autoclean"
-apt-get autoclean
+#echo">>>Autoclean"
+#apt-get autoclean
 
 echo ">>>Installing Quagga"
 apt-get install quagga quagga-doc -qy > /dev/null
 
 echo ">>>Copying zebra.conf"
-cp /vagrant/zebra.conf /etc/quegga/zebra.conf
+cp /vagrant/zebra.conf /etc/quagga/zebra.conf
 
 echo ">>>Copying bgpd.conf"
-cp /vagrant/bgpd.conf /etc/quegga/bgpd.conf
+cp /vagrant/bgpd.conf /etc/quagga/bgpd.conf
 
 echo ">>>Starting Zebra"
 service zebra start
