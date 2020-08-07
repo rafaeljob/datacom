@@ -217,12 +217,6 @@ def create_config_files():
 				os.rmdir(TEMP_PATH + directory)
 			except Exception as e:
 				print_fail(e)
-				exit(1)
-	else:
-		try:
-			os.mkdir(path=TEMP_PATH)
-		except Exception as e:
-				print_fail(e)
 				exit(1)				
 
 	print_create_temp()
