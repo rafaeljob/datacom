@@ -17,4 +17,4 @@ router bgp {{device.get_as_number()}}
  	{% if "host" not in interface.get_remote_device() %}neighbor {{interface.get_remote_ip()}}{% if device.get_function() == "leaf" %}/31{% endif%} activate{% endif %}{% endfor %}
  	redistribute connected
  	maximum-paths 64
- exit-address-family	
+! exit-address-family	

@@ -22,7 +22,7 @@ iface eth0 inet dhcp
 
 EOT
 
-echo ">>>Running Host File"
+echo ">>>Changing Permission"
 chmod +x /vagrant/host.sh
 
 echo ">>>Running Host File"

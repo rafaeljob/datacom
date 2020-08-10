@@ -9,3 +9,5 @@ echo ">>>Creating eth1 Interface"
 {% for interface in device.get_interfaces() %}ifconfig eth1 {{interface.get_local_ip()}}/24
 echo ">>>Adding New Deafult Gateway"
 ip route add 0/0 via {{interface.get_remote_ip()}} dev {{interface.get_local_interface()}}{% endfor %}
+ifconfig -a
+route -n
