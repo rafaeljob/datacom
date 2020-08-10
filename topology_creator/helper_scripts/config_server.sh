@@ -23,6 +23,9 @@ iface eth0 inet dhcp
 EOT
 
 echo ">>>Running Host File"
+chmod +x /vagrant/host.sh
+
+echo ">>>Running Host File"
 /vagrant/host.sh
   
 echo "********************************************"

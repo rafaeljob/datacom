@@ -32,7 +32,7 @@ apt-get update
 #apt-get autoclean
 
 echo ">>>Installing Quagga"
-apt-get install quagga quagga-doc -qy > /dev/null
+apt-get install quagga quagga-doc -qy 
 
 echo ">>>Copying zebra.conf"
 cp /vagrant/zebra.conf /etc/quagga/zebra.conf
