@@ -7,7 +7,7 @@ import sys
 
 class Device: 
 	def __init__(self, device_name, memory, os, tunnel_ip, 
-					vagrant, config, function, version):
+					vagrant, config, function, version, as_number):
 		self.device_name = device_name
 		self.memory = memory
 		self.os = os
@@ -16,6 +16,7 @@ class Device:
 		self.vagrant = vagrant
 		self.function = function
 		self.version = version
+		self.as_number = as_number
 		self.interfaces = []
 
 	# setters	
@@ -43,8 +44,11 @@ class Device:
 	def set_version(self, function):
 		self.version = version
 
+	def set_as_number(self, as_number):
+		self.as_number = as_number	
+
 	def set_interfaces(self, interfaces):
-		self.interfaces = interfaces
+		self.interfaces = interfaces	
 
 	# getters
 	def get_device_name(self):
@@ -71,6 +75,9 @@ class Device:
 	def get_version(self):
 		return self.version
 
+	def get_as_number(self):
+		return self.as_number	
+
 	def get_interfaces(self):
 		return self.interfaces								
 	
@@ -84,6 +91,7 @@ class Device:
 		print("- config" 		+ ":".ljust(14)	+ "%s" % self.config)
 		print("- function" 		+ ":".ljust(12)	+ "%s" % self.function)
 		print("- version" 		+ ":".ljust(13)	+ "%s" % self.version)
+		print("- as_number"		+ ":".ljust(11) + "%s" % self.as_number)
 		print("- interfaces:")
 		for interface in self.interfaces:
 			interface.print_info()
@@ -96,37 +104,37 @@ class Device:
 
 class Spine(Device):
 	def __init__(self, device_name=None, memory=None, os=None, tunnel_ip=None, 
-					vagrant=None, config=None, function=None, version=None):
+					vagrant=None, config=None, function=None, version=None, as_number=None):
 		super(Spine, self).__init__(device_name, memory, os, tunnel_ip, 
-					vagrant, config, function, version)
+					vagrant, config, function, version, as_number)		
 
 class Router(Device):
 	def __init__(self, device_name=None, memory=None, os=None, tunnel_ip=None, 
-					vagrant=None, config=None, function=None, version=None):
+					vagrant=None, config=None, function=None, version=None, as_number=None):
 		super(Router, self).__init__(device_name, memory, os, tunnel_ip, 
-					vagrant, config, function, version)
+					vagrant, config, function, version, as_number)
 
 class Switch(Device):
 	def __init__(self, device_name=None, memory=None, os=None, tunnel_ip=None, 
-					vagrant=None, config=None, function=None, version=None):
+					vagrant=None, config=None, function=None, version=None, as_number=None):
 		super(Switch, self).__init__(device_name, memory, os, tunnel_ip, 
-					vagrant, config, function, version)
+					vagrant, config, function, version, as_number)
 
 class Leaf(Device):
 	def __init__(self, device_name=None, memory=None, os=None, tunnel_ip=None, 
-					vagrant=None, config=None, function=None, version=None):
+					vagrant=None, config=None, function=None, version=None, as_number=None):
 		super(Leaf, self).__init__(device_name, memory, os, tunnel_ip, 
-					vagrant, config, function, version)
+					vagrant, config, function, version, as_number)
 
 class Host(Device):
 	def __init__(self, device_name=None, memory=None, os=None, tunnel_ip=None, 
-					vagrant=None, config=None, function=None, version=None):
+					vagrant=None, config=None, function=None, version=None, as_number=None):
 		super(Host, self).__init__(device_name, memory, os, tunnel_ip, 
-					vagrant, config, function, version)
+					vagrant, config, function, version, as_number)
 
 class Interface:
 	def __init__(self, local_interface=None, local_ip=None, local_port=None, mac=None, 
-		remote_device=None, remote_interface=None, remote_ip=None, remote_port=None):
+		remote_device=None, remote_interface=None, remote_ip=None, remote_port=None, remote_as=None):
 		self.local_interface = local_interface
 		self.local_ip = local_ip
 		self.local_port = local_port
@@ -135,6 +143,7 @@ class Interface:
 		self.remote_interface = remote_interface
 		self.remote_ip = remote_ip
 		self.remote_port = remote_port
+		self.remote_as = remote_as
 
 	# setters
 	def set_local_interface(self, local_interface):
@@ -161,6 +170,9 @@ class Interface:
 	def set_remote_port(self, remote_port):
 		self.remote_port = remote_port
 
+	def set_remote_as(self, remote_as):
+		self.remote_as = remote_as
+
 	# getters
 	def get_local_interface(self):
 		return self.local_interface
@@ -186,6 +198,9 @@ class Interface:
 	def get_remote_port(self):
 		return self.remote_port
 
+	def get_remote_as(self):
+		return self.remote_as	
+
 	# printer	
 	def print_info(self):
 		print("".ljust(22) + "local_interface"	+ ":".ljust(13) + "%s" % self.local_interface)
@@ -196,5 +211,6 @@ class Interface:
 		print("".ljust(22) + "remote_interface"	+ ":".ljust(12) + "%s" % self.remote_interface)
 		print("".ljust(22) + "remote_ip" 		+ ":".ljust(19) + "%s" % self.remote_ip)
 		print("".ljust(22) + "remote_port"		+ ":".ljust(17) + "%s" % self.remote_port)
+		print("".ljust(22) + "remote_as"		+ ":".ljust(19) + "%s" % self.remote_as)
 		print("\n")
 		

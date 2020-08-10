@@ -5,16 +5,16 @@
 hostname {{device.get_device_name()}}
 password zebra
 !
-router bgp {{asi}}
+router bgp {{device.get_as_number()}}
  bgp rputer-id {{router_id}}
  bgp log-neighbors-changes
  timers bgp 3 9
  no bgp default ipv4-unicast{% for interface in device.get_interfaces() %}
- {% if "host" not in interface.get_remote_device() %}neighbor {{interface.get_remote_ip()}} remote-as {{as_remote}}
- neighbor {{interface.get_remote_ip()}} advertisement-interval 0{% endif %}{% endfor %}
+ {% if "host" not in interface.get_remote_device() %}neighbor {{interface.get_remote_ip()}}{% if device.get_function() == "leaf" %}/31{% endif%} remote-as {{interface.get_remote_as()}}
+ neighbor {{interface.get_remote_ip()}}{% if device.get_function() == "leaf" %}/31{% endif%} advertisement-interval 0{% endif %}{% endfor %}
  bgp bestpath as-path multipath-relax
  address-family ipv4 unicast{% for interface in device.get_interfaces() %}
- 	{% if "host" not in interface.get_remote_device() %}neighbor {{interface.get_remote_ip()}} activate{% endif %}{% endfor %}
+ 	{% if "host" not in interface.get_remote_device() %}neighbor {{interface.get_remote_ip()}}{% if device.get_function() == "leaf" %}/31{% endif%} activate{% endif %}{% endfor %}
  	redistribute connected
  	maximum-paths 64
  exit-address-family	
