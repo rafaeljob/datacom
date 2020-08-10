@@ -9,7 +9,7 @@ router bgp {{device.get_as_number()}}
  bgp router-id {{router_id}}
  bgp log-neighbor-changes
  timers bgp 3 9
- no bgp default ipv4-unicast{% for interface in device.get_interfaces() %}
+ !no bgp default ipv4-unicast{% for interface in device.get_interfaces() %}
  {% if "host" not in interface.get_remote_device() %}neighbor {{interface.get_remote_ip()}}{% if device.get_function() == "leaf" %}/31{% endif%} remote-as {{interface.get_remote_as()}}
  neighbor {{interface.get_remote_ip()}}{% if device.get_function() == "leaf" %}/31{% endif%} advertisement-interval 0{% endif %}{% endfor %}
  bgp bestpath as-path multipath-relax
