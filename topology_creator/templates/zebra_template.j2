@@ -10,7 +10,7 @@ interface eth0
 interface lo
 !{% for interface in device.get_interfaces() %}
 interface {{interface.get_local_interface()}}
- ip address {{interface.get_local_ip()}}/{% if "host" in interface.get_remote_device() %}24{% else %}31{% endif %}
+ ip address {{interface.get_local_ip()}}/{% if "host" in interface.get_remote_device() %}24{% else %}24{% endif %}
 !{% endfor %}
 ip forwarding
 !
