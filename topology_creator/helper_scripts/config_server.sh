@@ -22,14 +22,20 @@ iface eth0 inet dhcp
 
 EOT
 
-echo ">>>Copying host.sh"
-cp /vagrant/host.sh /etc/init.d/host.sh
+
+cat <<EOT > /etc/init.d/host
+#!/bin/sh
+/vagrant/host.sh
+EOT
+
+#echo ">>>Copying host.sh"
+#cp /vagrant/host.sh /etc/init.d/host.sh
 
 echo ">>>Changing Permission"
-chmod +x /etc/init.d/host.sh
-
-echo ">>>Running Host File"
-/vagrant/host.sh
+chmod ugo+x /etc/init.d/host.sh
+update-rc.d host defaults
+#echo ">>>Running Host File"
+#/vagrant/host.sh
   
 echo "********************************************"
 echo "   Finished Server Post Config - DATACOM    "
