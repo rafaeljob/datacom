@@ -22,8 +22,11 @@ iface eth0 inet dhcp
 
 EOT
 
+echo ">>>Copying host.sh"
+cp /vagrant/host.sh /etc/init.d/host.sh
+
 echo ">>>Changing Permission"
-chmod +x /vagrant/host.sh
+chmod +x /etc/init.d/host.sh
 
 echo ">>>Running Host File"
 /vagrant/host.sh
