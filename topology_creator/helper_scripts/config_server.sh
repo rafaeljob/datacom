@@ -32,7 +32,7 @@ EOT
 #cp /vagrant/host.sh /etc/init.d/host.sh
 
 echo ">>>Changing Permission"
-chmod ugo+x /etc/init.d/host.sh
+chmod ugo+x /etc/init.d/host
 update-rc.d host defaults
 #echo ">>>Running Host File"
 #/vagrant/host.sh
