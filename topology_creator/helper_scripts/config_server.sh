@@ -23,17 +23,17 @@ iface eth0 inet dhcp
 EOT
 
 
-cat <<EOT > /etc/init.d/host
+#cat <<EOT > /etc/init.d/host
 #!/bin/sh
-/vagrant/host.sh
-EOT
+#/vagrant/host.sh
+#EOT
 
 #echo ">>>Copying host.sh"
 #cp /vagrant/host.sh /etc/init.d/host.sh
 
-echo ">>>Changing Permission"
-chmod ugo+x /etc/init.d/host
-update-rc.d host defaults
+#echo ">>>Changing Permission"
+#chmod ugo+x /etc/init.d/host
+#update-rc.d host defaults
 #echo ">>>Running Host File"
 #/vagrant/host.sh
   

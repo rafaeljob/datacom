@@ -153,7 +153,7 @@ def create_interface():
 	spine_leaf = 1
 	host_list = []
 
-	spine_local_machine_ip = 0		######1
+	spine_local_machine_ip = 1		######1
 	leaf_local_network_ip = 1
 
 	for i in range(0, len(devices)):
@@ -161,7 +161,7 @@ def create_interface():
 			leaf_host = 1
 			leaf_spine = 50
 
-			spine_local_network_ip = 1
+			spine_local_network_ip = 100
 			leaf_local_machine_ip = 1
 
 			for j in range(0, len(devices)):
@@ -173,8 +173,8 @@ def create_interface():
 							li_leaf = "swp%d" % leaf_spine
 							ri_leaf = "swp%d" % spine_leaf
 
-							local_ip = SPINE_START_IP + str(spine_local_network_ip) + '.' + str(spine_local_machine_ip + 1)
-							remote_ip = SPINE_START_IP + str(spine_local_network_ip) + '.' + str(spine_local_machine_ip) 
+							local_ip = SPINE_START_IP + str(spine_local_network_ip + spine_leaf) + '.' + str(spine_local_machine_ip + 1)
+							remote_ip = SPINE_START_IP + str(spine_local_network_ip + spine_leaf) + '.' + str(spine_local_machine_ip) 
 
 							devices[i].append_interface(Interface(local_interface=li_leaf, remote_interface=ri_leaf, remote_device=devices[j].get_device_name(),
 																	local_ip=local_ip, remote_ip=remote_ip, remote_as=devices[j].get_as_number()))	#visao da leaf
@@ -183,7 +183,7 @@ def create_interface():
 																	local_ip=remote_ip, remote_ip=local_ip, remote_as=devices[i].get_as_number()))	#visao da spine
 
 							leaf_spine+= 1
-							spine_local_network_ip+= 1
+							spine_local_network_ip+= 100
 
 						elif devices[j].get_function() == 'host' and (leaf_host <= EDGE_NUM):	
 							li_leaf = "swp%d" % leaf_host
@@ -202,7 +202,7 @@ def create_interface():
 							host_list.append(devices[j])
 							
 			spine_leaf+= 1
-			spine_local_machine_ip+= 2
+			#spine_local_network_ip+= 1
 			leaf_local_network_ip+= 1
 
 	if VERBOSE:
