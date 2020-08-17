@@ -43,6 +43,11 @@ cp /vagrant/zebra.conf /etc/quagga/zebra.conf
 echo ">>>Copying bgpd.conf"
 cp /vagrant/bgpd.conf /etc/quagga/bgpd.conf
 
+#echo ">>>Changing Owner"
+#chown quagga:quagga /etc/quagga/*.conf
+#chown quagga:quaggavty /etc/quagga/vtysh.conf
+#chmod 640 /etc/quagga/*.conf
+
 echo ">>>Starting Zebra"
 service zebra start
 
