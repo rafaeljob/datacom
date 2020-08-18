@@ -31,8 +31,8 @@ EOT
 #echo ">>>Copying host.sh"
 #cp /vagrant/host.sh /etc/init.d/host.sh
 
-#echo ">>>Changing Permission"
-#chmod ugo+x /etc/init.d/host
+echo ">>>Changing Permission"
+chmod +x /vagrant/host.sh
 #update-rc.d host defaults
 #echo ">>>Running Host File"
 #/vagrant/host.sh
