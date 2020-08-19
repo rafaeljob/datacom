@@ -196,7 +196,8 @@ def parse_edge_list(edge_list, inv):
 		destination_link = link(right_device[1], right_mac, right_port, left_device[0], left_device[1], left_port)
 
 		inv[left_device[0]]['interfaces'].append(source_link)
-		inv[right_device[0]]['interfaces'].append(destination_link)
+		if right_device[0] != "NOTHING":
+			inv[right_device[0]]['interfaces'].append(destination_link)
 
 		port_list.append(left_port)
 		port_list.append(right_port)
