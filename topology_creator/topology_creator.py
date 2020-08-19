@@ -132,12 +132,12 @@ def create_machine():
 	for i in range(1, SPINE_NUM+1):
 		device_name = "spine%02d" % i
 		devices.append(Spine(device_name=device_name, memory=MEMORY, os=OS, vagrant="eth1", function="spine",
-								config="./helper_scripts/config_switch_bgp.sh", version="1.0.282", as_number=START_AS))
+								config="./helper_scripts/config_spine_bgp.sh", version="1.0.282", as_number=START_AS))
 
 	for i in range(1, LEAF_NUM+1):	
 		device_name = "leaf%02d" % i
 		devices.append(Leaf(device_name=device_name, memory=MEMORY, os=OS, vagrant="eth1", function="leaf",
-								config="./helper_scripts/config_switch_bgp.sh", version="1.0.282", as_number=(START_AS+10+i)))
+								config="./helper_scripts/config_leaf_bgp.sh", version="1.0.282", as_number=(START_AS+10+i)))
 
 	for i in range(1, (EDGE_NUM*LEAF_NUM)+1):	
 		device_name = "host%02d" % i
@@ -164,9 +164,12 @@ def create_interface():
 			spine_local_network_ip = 100
 			leaf_local_machine_ip = 1
 
+			devices[i].append_interface(Interface(local_interface="vlan10", remote_interface="", remote_device="",
+					local_ip=LEAF_START_IP + str(leaf_local_network_ip) + '.' + str(leaf_local_machine_ip), remote_ip="", remote_as=""))
+
 			for j in range(0, len(devices)):
 				if i != j and devices[j].get_function() != "leaf": 
-
+					
 					if devices[j] not in host_list:
 
 						if devices[j].get_function() == 'spine':
@@ -189,7 +192,8 @@ def create_interface():
 							li_leaf = "swp%d" % leaf_host
 							ri_leaf = "eth1"
 
-							local_ip = LEAF_START_IP + str(leaf_local_network_ip) + '.' + str(leaf_local_machine_ip)
+							#local_ip = LEAF_START_IP + str(leaf_local_network_ip) + '.' + str(leaf_local_machine_ip)
+							local_ip = LEAF_START_IP + str(leaf_local_network_ip) + '.' + str(1)
 							remote_ip = LEAF_START_IP + str(leaf_local_network_ip) + '.' + str(leaf_local_machine_ip + 1)
 
 							devices[i].append_interface(Interface(local_interface=li_leaf, remote_interface=ri_leaf, remote_device=devices[j].get_device_name(),
@@ -198,7 +202,8 @@ def create_interface():
 							devices[j].append_interface(Interface(local_interface=ri_leaf, remote_interface=li_leaf, remote_device=devices[i].get_device_name(),
 																	local_ip=remote_ip, remote_ip=local_ip, remote_as=devices[i].get_as_number()))	#visao do host
 							leaf_host+=	1
-							leaf_local_machine_ip+= 2
+							#leaf_local_machine_ip+= 1
+							leaf_local_machine_ip+= 1
 							host_list.append(devices[j])
 							
 			spine_leaf+= 1

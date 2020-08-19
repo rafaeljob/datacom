@@ -354,7 +354,7 @@ def parser():
 	parser.add_argument('-p', '--provider', choices=["libvirt"],
 				help='Choose the provider \{libvirt}')
 
-	parser.add_argument('-st','--stats', action="store_true",
+	parser.add_argument('-v','--verbose', action="store_true",
                 help='Show all data recovered and all preocess')
 
 	parser.add_argument('--version', action='version', version="Topology Converter version is v%s" % VERSION,
@@ -363,7 +363,7 @@ def parser():
 	args = parser.parse_args()
 	ARG_STRING = " ".join(sys.argv)
 
-	if args.stats: STATS = 1
+	if args.verbose: STATS = 1
 
 	if args.provider: PROVIDER = args.provider
 
