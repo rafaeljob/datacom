@@ -164,8 +164,8 @@ def create_interface():
 			spine_local_network_ip = 100
 			leaf_local_machine_ip = 1
 
-			devices[i].append_interface(Interface(local_interface="vlan10", remote_interface="", remote_device="",
-					local_ip=LEAF_START_IP + str(leaf_local_network_ip) + '.' + str(leaf_local_machine_ip), remote_ip="", remote_as=""))
+			devices[i].append_interface(Interface(local_interface="vlan10", remote_interface="NOTHING", remote_device="NOTHING",
+					local_ip=LEAF_START_IP + str(leaf_local_network_ip) + '.' + str(leaf_local_machine_ip), remote_ip="NOTHING", remote_as=""))
 
 			for j in range(0, len(devices)):
 				if i != j and devices[j].get_function() != "leaf": 
