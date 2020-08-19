@@ -8,15 +8,15 @@ size_array=${#commandArray[@]}
 spine=""; leaf=""; host="";
 
 for (( args_array=0; args_array < $size_array; args_array=args_array+1)); do
-  if [[ ${rgs_array[$args]} = "-s" ]];
+  if [[ ${args_array[$args]} = "-s" ]];
   then 
-	spine=${rgs_array[$args+1]}
-  elif [[ ${rgs_array[$args]} = "-l" ]];
+	spine=${args_array[$args+1]}
+  elif [[ ${args_array[$args]} = "-l" ]];
   then 
-  	leaf=${rgs_array[$args+1]}
-  elif [[ ${rgs_array[$args]} = "-l" ]];
+  	leaf=${args_array[$args+1]}
+  elif [[ ${args_array[$args]} = "-l" ]];
   then 
-  	host=${rgs_array[$args+1]}
+  	host=${args_array[$args+1]}
   fi	  
 done
 
