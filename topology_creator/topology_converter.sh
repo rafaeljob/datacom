@@ -1,47 +1,54 @@
 #!/bin/bash
 
 args=$*
-echo "Arguments: " $args
+echo ">>Arguments: " $args
 read -a args_array <<< $args
-size_array=${#commandArray[@]}
+size_array=${#args_array[@]}
+#echo ">>Size: " $size_array
 
-spine=""; leaf=""; host="";
+spine="1"; leaf="1"; host="1";
 
-for (( args_array=0; args_array < $size_array; args_array=args_array+1)); do
-  if [[ ${args_array[$args]} = "-s" ]];
-  then 
-	spine=${args_array[$args+1]}
-  elif [[ ${args_array[$args]} = "-l" ]];
-  then 
-  	leaf=${args_array[$args+1]}
-  elif [[ ${args_array[$args]} = "-l" ]];
-  then 
-  	host=${args_array[$args+1]}
-  fi	  
+for i in $(seq 0 $(($size_array - 1)) ); do
+	#echo "arg " $i ": " ${args_array[$i]}
+	case "${args_array[$i]}" in
+		"-s") spine="${args_array[$(($i + 1))]}" ;;
+
+		"-l") leaf="${args_array[$(($i + 1))]}" ;;
+
+		"-e") host="${args_array[$(($i + 1))]}" ;;
+	esac
 done
 
-echo $spine " -- " $leaf " -- " $host
 
-if [ -z $args ];
-then
+#echo "spine" $spine
+#echo "leaf" $leaf
+#echo "host" $host
+#echo "argsss " $args
+if [[ -z $args ]]; then
 	echo "Empty Arguments"
-elif [ $args = "-h" ] || [ $args = "--help" ]; 
-then
+	exit 0
+elif [[ $args == "-h" ]] || [[ $args == "--help" ]]; then
+	#echo "help"
 	python3 -B topology_creator.py $args
 	python3 -B reader.py $args
-elif [ $args = *"-v"* ] || [ $args = *"--verbose"* ];
-then	
+	exit 0
+elif [[ $args == *"-v"* ]] || [[ $args == *"--verbose"* ]]; then
+	#echo "verbose"
 	python3 -B topology_creator.py $args
 	python3 -B reader.py topology.dot -p libvirt -v
-	#sudo vagrant up
+	sudo vagrant up
 else
+	#echo "else"
 	python3 -B topology_creator.py $args
 	python3 -B reader.py topology.dot -p libvirt
-	#sudo vagrant up		
-fi	
+	sudo vagrant up
+fi
 
-#for host in $allMachines; do
-	#echo -e "Running machine" ${host} "configs"
-	#sudo vagrant ssh $host -c "sudo chmod +x /vagrant/host.sh"
-	#sudo vagrant ssh $host -c "sudo /vagrant/host.sh"
-#done
+sleep 50
+
+for host in $(seq -f "%02g" 1 $(($leaf * $host))); do
+	#echo "host"$host
+	echo -e "Running machine" "host"${host} "configs"
+	sudo vagrant ssh "host"$host -c "sudo chmod +x /vagrant/host.sh"
+	sudo vagrant ssh "host"$host -c "sudo /vagrant/host.sh"
+done
