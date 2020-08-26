@@ -215,17 +215,21 @@ def create_interface():
 
 def create_config_files():
 
-	if os.listdir(TEMP_PATH):
+	if len(os.listdir(TEMP_PATH)) > 1:
+
+		print(os.listdir(TEMP_PATH))
+
 		print_delete_temp()
 		for directory in os.listdir(TEMP_PATH):
-			try:
-				if os.listdir(TEMP_PATH + directory):
-					for file in os.listdir(TEMP_PATH + directory):
-						os.remove(TEMP_PATH + directory + "/" + file)		
-				os.rmdir(TEMP_PATH + directory)
-			except Exception as e:
-				print_fail(e)
-				exit(1)				
+			if directory != ".gitignore":
+				try:
+					if os.listdir(TEMP_PATH + directory):
+						for file in os.listdir(TEMP_PATH + directory):
+							os.remove(TEMP_PATH + directory + "/" + file)		
+					os.rmdir(TEMP_PATH + directory)
+				except Exception as e:
+					print_fail(e)
+					exit(1)				
 
 	print_create_temp()
 	spine_id = 21
