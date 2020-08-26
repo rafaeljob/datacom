@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "********************************************"
-echo "  Running BGP Switch Post Config - DATACOM  "
+echo "  Running BGP LEAF Post Config - DATACOM    "
 echo "********************************************"
 
 sudo su 
@@ -20,10 +20,6 @@ iface vagrant inet dhcp
 auto eth0
 iface eth0 inet dhcp
 
-auto vlan10
-iface vlan10
-	bridge-ports swp1 swp2
-
 EOT
 
 echo ">>>Updating"
@@ -37,6 +33,9 @@ apt-get update
 
 echo ">>>Installing Quagga"
 apt-get install quagga quagga-doc -qy 
+
+echo ">>>Installing Quagga"
+apt-get install bridge-utils -qy
 
 echo ">>>Copying vtysh.conf"
 cp /usr/share/doc/quagga-core/examples/vtysh.conf.sample /etc/quagga/vtysh.conf
@@ -62,5 +61,5 @@ echo ">>>Setting IP Forward"
 sysctl -w net.ipv4.ip_forward=1 > /dev/null
 
 echo "********************************************"
-echo "   Finished Switch Post Config - DATACOM    "
+echo "   Finished LEAF Post Config - DATACOM      "
 echo "********************************************"

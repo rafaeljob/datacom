@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "********************************************"
-echo "  Running BGP Switch Post Config - DATACOM  "
+echo "  Running BGP SPINE Post Config - DATACOM   "
 echo "********************************************"
 
 sudo su 
@@ -58,5 +58,5 @@ echo ">>>Setting IP Forward"
 sysctl -w net.ipv4.ip_forward=1 > /dev/null
 
 echo "********************************************"
-echo "   Finished Switch Post Config - DATACOM    "
+echo "   Finished SPINE Post Config - DATACOM     "
 echo "********************************************"

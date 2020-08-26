@@ -1,0 +1,5 @@
+# exclude everything except the root directory (/temp_scripts)
+*
+
+# except gitignore
+!.gitignore
