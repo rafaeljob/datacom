@@ -51,4 +51,8 @@ for host in $(seq -f "%02g" 1 $(($leaf * $host))); do
 	echo -e "Running machine" "host"${host} "configs"
 	sudo vagrant ssh "host"$host -c "sudo chmod +x /vagrant/host.sh"
 	sudo vagrant ssh "host"$host -c "sudo /vagrant/host.sh"
+<<<<<<< HEAD
 done
+=======
+done
+>>>>>>> 445146342d5105954a566f18d8c4e6a66aa801da
