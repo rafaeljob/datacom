@@ -9,12 +9,12 @@ router bgp {{device.get_as_number()}}
  bgp router-id {{device.get_interfaces()[0].get_local_ip()}}
  bgp log-neighbor-changes
  timers bgp 3 9
- no bgp default ipv4-unicast{% for interface in device.get_interfaces() %}{% if "host" not in interface.get_remote_device() %}
+ no bgp default ipv4-unicast{% for interface in device.get_interfaces() %}{% if "host" not in interface.get_remote_device() %}{% if "NOTHING" != interface.get_remote_ip() %}
  neighbor {{interface.get_remote_ip()}} remote-as {{interface.get_remote_as()}}
- neighbor {{interface.get_remote_ip()}} advertisement-interval 0{% endif %}{% endfor %}
+ neighbor {{interface.get_remote_ip()}} advertisement-interval 0{% endif %}{% endif %}{% endfor %}
  bgp bestpath as-path multipath-relax
- address-family ipv4 unicast{% for interface in device.get_interfaces() %}{% if "host" not in interface.get_remote_device() %}
- 	neighbor {{interface.get_remote_ip()}} activate{% endif %}{% endfor %}
+ address-family ipv4 unicast{% for interface in device.get_interfaces() %}{% if "host" not in interface.get_remote_device() %}{% if "NOTHING" != interface.get_remote_ip() %}
+ 	neighbor {{interface.get_remote_ip()}} activate{% endif %}{% endif %}{% endfor %}
  	redistribute connected
  	maximum-paths 64
 ! exit-address-family

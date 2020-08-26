@@ -217,8 +217,6 @@ def create_config_files():
 
 	if len(os.listdir(TEMP_PATH)) > 1:
 
-		print(os.listdir(TEMP_PATH))
-
 		print_delete_temp()
 		for directory in os.listdir(TEMP_PATH):
 			if directory != ".gitignore":
