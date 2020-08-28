@@ -342,11 +342,12 @@ def write_graph():
 
 	for device in devices:	
 		for interface in device.get_interfaces():
-			graph.add_edge(create_edge(src_dev=device.get_device_name(),
-										rmt_dev=interface.get_remote_device(),
-										src_i=interface.get_local_interface(),
-										rmt_i=interface.get_remote_interface()
-										))	
+			if interface.get_interface_type() != "bridge":
+				graph.add_edge(create_edge(src_dev=device.get_device_name(),
+											rmt_dev=interface.get_remote_device(),
+											src_i=interface.get_local_interface(),
+											rmt_i=interface.get_remote_interface()
+											))	
 	try:
 		print_write_graph()	
 		graph.write(path="./topology.dot", prog='dot', format='raw')
