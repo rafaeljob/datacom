@@ -51,13 +51,13 @@ echo -e "*****************DONE WATING VAGRANT UP*****************"
 for host in $(seq -f "%02g" 1 $(($leaf * $host))); do
 	#echo "host"$host
 	echo -e "Running machine" "host"${host} "configs"
-	sudo vagrant ssh "host"$host -c "sudo chmod +x /vagrant/host.sh" && "sudo /vagrant/host.sh"
+	sudo vagrant ssh "host"$host -c "sudo chmod +x /vagrant/host.sh && sudo /vagrant/host.sh"
 	#sudo vagrant ssh "host"$host -c "sudo /vagrant/host.sh"
 done
 
 for leaf in $(seq -f "%02g" 1 $leaf); do
 	#echo "host"$host
 	echo -e "Running machine" "leaf"${leaf} "configs"
-	sudo vagrant ssh "leaf"$leaf -c "sudo chmod +x /vagrant/leaf.sh" && "sudo /vagrant/leaf.sh"
+	sudo vagrant ssh "leaf"$leaf -c "sudo chmod +x /vagrant/leaf.sh && sudo /vagrant/leaf.sh"
 	#sudo vagrant ssh "leaf"$leaf -c "sudo /vagrant/leaf.sh"
 done
