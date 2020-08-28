@@ -37,6 +37,7 @@ TEMP_PATH = "./temp_scripts/"
 ZEBRA_TEMPLATE = "./templates/zebra_template.j2"
 BGPD_TEMPLATE = "./templates/bgpd_template.j2"
 HOST_TEMPLATE = "./templates/host_template.j2"
+LEAF_TEMPLATE = "./templates/leaf_template.j2"
 
 ##
 #PRINTS
@@ -165,7 +166,7 @@ def create_interface():
 			leaf_local_machine_ip = 1
 
 			devices[i].append_interface(Interface(local_interface="vlan10", remote_interface="NOTHING", remote_device="NOTHING",
-					local_ip=LEAF_START_IP + str(leaf_local_network_ip) + '.' + str(leaf_local_machine_ip), remote_ip="NOTHING", remote_as=""))
+					local_ip=LEAF_START_IP + str(leaf_local_network_ip) + '.' + str(leaf_local_machine_ip), remote_ip="NOTHING", remote_as="", interface_type="bridge"))
 
 			for j in range(0, len(devices)):
 				if i != j and devices[j].get_function() != "leaf": 
@@ -180,10 +181,10 @@ def create_interface():
 							remote_ip = SPINE_START_IP + str(spine_local_network_ip + spine_leaf) + '.' + str(spine_local_machine_ip) 
 
 							devices[i].append_interface(Interface(local_interface=li_leaf, remote_interface=ri_leaf, remote_device=devices[j].get_device_name(),
-																	local_ip=local_ip, remote_ip=remote_ip, remote_as=devices[j].get_as_number()))	#visao da leaf
+																	local_ip=local_ip, remote_ip=remote_ip, remote_as=devices[j].get_as_number(), interface_type="x"))	#visao da leaf
 
 							devices[j].append_interface(Interface(local_interface=ri_leaf, remote_interface=li_leaf, remote_device=devices[i].get_device_name(),
-																	local_ip=remote_ip, remote_ip=local_ip, remote_as=devices[i].get_as_number()))	#visao da spine
+																	local_ip=remote_ip, remote_ip=local_ip, remote_as=devices[i].get_as_number(), interface_type="x"))	#visao da spine
 
 							leaf_spine+= 1
 							spine_local_network_ip+= 100
@@ -197,10 +198,10 @@ def create_interface():
 							remote_ip = LEAF_START_IP + str(leaf_local_network_ip) + '.' + str(leaf_local_machine_ip + 1)
 
 							devices[i].append_interface(Interface(local_interface=li_leaf, remote_interface=ri_leaf, remote_device=devices[j].get_device_name(),
-																	local_ip=local_ip, remote_ip=remote_ip, remote_as=devices[j].get_as_number()))	#visao da leaf
+																	local_ip="0.0.0.0", remote_ip=remote_ip, remote_as=devices[j].get_as_number(), interface_type="dummy"))	#visao da leaf
 
 							devices[j].append_interface(Interface(local_interface=ri_leaf, remote_interface=li_leaf, remote_device=devices[i].get_device_name(),
-																	local_ip=remote_ip, remote_ip=local_ip, remote_as=devices[i].get_as_number()))	#visao do host
+																	local_ip=remote_ip, remote_ip=local_ip, remote_as=devices[i].get_as_number(), interface_type="x"))	#visao do host
 							leaf_host+=	1
 							#leaf_local_machine_ip+= 1
 							leaf_local_machine_ip+= 1
@@ -243,6 +244,7 @@ def create_config_files():
 					spine_id+= 1
 				elif device.get_function() == 'leaf':
 					write_bgpd_file(device=device, path=path, router_id=START_ID + str(leaf_id))
+					write_leaf_file(device=device, path=path)
 					leaf_id+= 1
 			else:
 				write_host_file(device=device, path=path)		
@@ -294,6 +296,21 @@ def write_host_file(device, path):
 	except Exception as e:
 			print_fail(e)
 			exit(1)									
+
+def write_leaf_file(device, path):
+	try:		
+		#le arquivo do template
+		template = jinja2.Template(open(LEAF_TEMPLATE).read())
+		#renderiza o template lido previamente com as informacoes extraidas da topologia
+		try:
+			with open(path + "/leaf.sh", 'w') as outfile:
+				outfile.write(template.render(device=device))
+		except Exception as e:
+			print_fail(e)
+			exit(1)
+	except Exception as e:
+			print_fail(e)
+			exit(1)
 
 def add_double_quotes(string):
 	return '"' + string + '"' 

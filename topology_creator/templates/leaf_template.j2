@@ -1,0 +1,12 @@
+#!/bin/bash
+{% set bridge = "xx" %}
+echo ">>>Creating vlan10 Bridge"
+{% for interface in device.get_interfaces()%}{% if interface.get_interface_type() == "bridge" %}sudo brctl addbr {{interface.get_local_interface()}}
+{% for if in device.get_interfaces()%}{% if if.get_interface_type() == "dummy" %}sudo brctl addif {{interface.get_local_interface()}} {{if.get_local_interface()}}
+{% endif %}{% endfor %}{% endif %}{% endfor %}
+echo ">>>Setting Bridge Address"
+{% for interface in device.get_interfaces()%}{% if interface.get_interface_type() == "bridge" %}sudo ifconfig {{interface.get_local_interface()}} {{interface.get_local_ip()}}/24{% endif %}{% endfor %}
+
+echo ">>>Setting Bridge/Interfaces UP"
+{% for interface in device.get_interfaces()%}{% if interface.get_interface_type() != "x" %}sudo ip link set dev {{interface.get_local_interface()}} up
+{% endif %}{% endfor %}
