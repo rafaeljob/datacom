@@ -38,6 +38,7 @@ echo ">>>Installing Bridge-Utils"
 apt-get install bridge-utils -qy
 
 echo ">>>Installing TShark"
+echo "wireshark-common wireshark-common/install-setuid boolean true" | sudo debconf-set-selections
 apt-get install tshark -qy
 
 echo ">>>Copying vtysh.conf"
