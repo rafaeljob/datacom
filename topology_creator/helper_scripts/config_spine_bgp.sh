@@ -34,6 +34,9 @@ apt-get update
 echo ">>>Installing Quagga"
 apt-get install quagga quagga-doc -qy 
 
+echo ">>>Installing TShark"
+apt-get install tshark -qy
+
 echo ">>>Copying vtysh.conf"
 cp /usr/share/doc/quagga-core/examples/vtysh.conf.sample /etc/quagga/vtysh.conf
 

@@ -36,6 +36,9 @@ chmod +x /vagrant/host.sh
 #update-rc.d host defaults
 #echo ">>>Running Host File"
 #/vagrant/host.sh
+
+echo ">>>Installing TShark"
+apt-get install tshark -qy
   
 echo "********************************************"
 echo "   Finished Server Post Config - DATACOM    "
