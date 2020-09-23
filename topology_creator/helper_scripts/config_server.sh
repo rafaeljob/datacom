@@ -6,6 +6,9 @@ echo "********************************************"
 
 sudo su 
 
+echo ">>>Updating"
+apt-get update
+
 #echo "retry 1;" >> /etc/dhcp/dhclient.conf
 #echo "timeout 600;" >> /etc/dhcp/dhclient.conf
 
