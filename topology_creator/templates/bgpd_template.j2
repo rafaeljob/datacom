@@ -17,7 +17,7 @@ router bgp {{device.get_as_number()}}
  	neighbor {{interface.get_remote_ip()}} activate{% endif %}{% endif %}{% endfor %}
  	redistribute connected
  	maximum-paths 64
-! exit-address-family
+ exit-address-family
  address-family ipv6
  exit-address-family
 exit

@@ -22,21 +22,11 @@ iface eth0 inet dhcp
 
 EOT
 
-
-#cat <<EOT > /etc/init.d/host
-#!/bin/sh
-#/vagrant/host.sh
-#EOT
-
-#echo ">>>Copying host.sh"
-#cp /vagrant/host.sh /etc/init.d/host.sh
-
+#
 echo ">>>Changing Permission"
 chmod +x /vagrant/host.sh
-#update-rc.d host defaults
-#echo ">>>Running Host File"
-#/vagrant/host.sh
 
+#
 echo ">>>Installing TShark"
 echo "wireshark-common wireshark-common/install-setuid boolean true" | sudo debconf-set-selections
 apt-get install tshark -qy
