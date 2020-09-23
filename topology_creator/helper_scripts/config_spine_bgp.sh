@@ -25,27 +25,29 @@ EOT
 echo ">>>Updating"
 apt-get update
 
-#echo">>>Autoremove"
-#apt-get autoremove
+echo ">>>Installing FRRouting"
+curl -s https://deb.frrouting.org/frr/keys.asc | apt-key add -
+FRRVER="frr-stable"
+echo deb https://deb.frrouting.org/frr $(lsb_release -s -c) $FRRVER | tee -a /etc/apt/sources.list.d/frr.list
+apt install frr frr-pythontools -qy
 
-#echo">>>Autoclean"
-#apt-get autoclean
-
-echo ">>>Installing Quagga"
-apt-get install quagga quagga-doc -qy 
+#echo ">>>Installing Quagga"
+#apt-get install quagga quagga-doc -qy 
 
 echo ">>>Installing TShark"
 echo "wireshark-common wireshark-common/install-setuid boolean true" | sudo debconf-set-selections
 apt-get install tshark -qy
 
-echo ">>>Copying vtysh.conf"
-cp /usr/share/doc/quagga-core/examples/vtysh.conf.sample /etc/quagga/vtysh.conf
+#echo ">>>Copying vtysh.conf"
+#cp /usr/share/doc/quagga-core/examples/vtysh.conf.sample /etc/quagga/vtysh.conf
 
 echo ">>>Copying zebra.conf"
-cp /vagrant/zebra.conf /etc/quagga/zebra.conf
+#cp /vagrant/zebra.conf /etc/quagga/zebra.conf
+cp /vagrant/zebra.conf /etc/frr/zebra.conf
 
 echo ">>>Copying bgpd.conf"
-cp /vagrant/bgpd.conf /etc/quagga/bgpd.conf
+#cp /vagrant/bgpd.conf /etc/quagga/bgpd.conf
+cp /vagrant/bgpd.conf /etc/frr/bgpd.conf
 
 #echo ">>>Changing Owner"
 #chown quagga:quagga /etc/quagga/*.conf

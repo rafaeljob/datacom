@@ -29,16 +29,16 @@ apt-get update
 #apt-get install quagga quagga-doc -qy 
 
 echo ">>>Installing FRRouting"
-curl -s https://deb.frrouting.org/frr/keys.asc | sudo apt-key add -
+curl -s https://deb.frrouting.org/frr/keys.asc | apt-key add -
 FRRVER="frr-stable"
-echo deb https://deb.frrouting.org/frr $(lsb_release -s -c) $FRRVER | sudo tee -a /etc/apt/sources.list.d/frr.list
-apt-get install frr frr-pythontools -qy
+echo deb https://deb.frrouting.org/frr $(lsb_release -s -c) $FRRVER |  tee -a /etc/apt/sources.list.d/frr.list
+apt install frr frr-pythontools -qy
 
 echo ">>>Installing Bridge-Utils"
 apt-get install bridge-utils -qy
 
 echo ">>>Installing TShark"
-echo "wireshark-common wireshark-common/install-setuid boolean true" | sudo debconf-set-selections
+echo "wireshark-common wireshark-common/install-setuid boolean true" | debconf-set-selections
 apt-get install tshark -qy
 
 #echo ">>>Copying vtysh.conf"

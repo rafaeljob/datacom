@@ -31,7 +31,7 @@ chmod +x /vagrant/host.sh
 
 #
 echo ">>>Installing TShark"
-echo "wireshark-common wireshark-common/install-setuid boolean true" | sudo debconf-set-selections
+echo "wireshark-common wireshark-common/install-setuid boolean true" | debconf-set-selections
 apt-get install tshark -qy
   
 echo "********************************************"
