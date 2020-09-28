@@ -58,7 +58,7 @@ for leaf in $(seq -f "%02g" 1 $leaf); do
 	sudo vagrant ssh "leaf"$leaf -c "sudo chmod +x /vagrant/config.sh && sudo /vagrant/config.sh"
 done
 
-for leaf in $(seq -f "%02g" 1 $leaf); do
+for spine in $(seq -f "%02g" 1 $spine); do
 	echo -e "Running machine" "spine"${spine} "configs"
 	sudo vagrant ssh "spine"$spine -c "sudo chmod +x /vagrant/config.sh && sudo /vagrant/config.sh"
 done
