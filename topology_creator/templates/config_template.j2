@@ -1,0 +1,55 @@
+#!/bin/bash
+{% if device.get_function() == 'host' %}
+echo ">>>Deleting Default Gateway"
+ip route del 0/0
+
+echo ">>>Creating eth1 Interface"
+{% for interface in device.get_interfaces() %}sudo ifconfig eth1 {{interface.get_local_ip()}}/24 up
+
+echo ">>>Adding New Default Gateway"
+sudo ip route add 0/0 via {{interface.get_remote_ip()}} dev {{interface.get_local_interface()}}{% endfor %}
+############################################################################################################################
+{% elif device.get_function() == 'spine' %}
+echo ">>>Installing FRRouting"
+sudo curl -s https://deb.frrouting.org/frr/keys.asc | sudo apt-key add -
+sudo echo deb https://deb.frrouting.org/frr $(lsb_release -s -c) "frr-stable" | sudo tee -a /etc/apt/sources.list.d/frr.list
+sudo apt update && sudo apt install frr frr-pythontools -qy
+
+NUM=$(sudo awk '/bgpd=no/{print NR}' /etc/frr/daemons)
+sudo sed -i "${NUM}c\bgpd=yes" /etc/frr/daemons
+
+echo ">>>Copying zebra.conf"
+sudo cp /vagrant/zebra.conf /etc/frr/zebra.conf
+
+echo ">>>Copying bgpd.conf"
+sudo cp /vagrant/bgpd.conf /etc/frr/bgpd.conf
+sudo service frr restart
+############################################################################################################################
+{% elif device.get_function() == 'leaf' %}
+echo ">>>Installing FRRouting"
+sudo curl -s https://deb.frrouting.org/frr/keys.asc | sudo apt-key add -
+sudo echo deb https://deb.frrouting.org/frr $(lsb_release -s -c) "frr-stable" | sudo tee -a /etc/apt/sources.list.d/frr.list
+sudo apt update && sudo apt install frr frr-pythontools -qy
+
+NUM=$(sudo awk '/bgpd=no/{print NR}' /etc/frr/daemons)
+sudo sed -i "${NUM}c\bgpd=yes" /etc/frr/daemons
+
+echo ">>>Copying zebra.conf"
+sudo cp /vagrant/zebra.conf /etc/frr/zebra.conf
+
+echo ">>>Copying bgpd.conf"
+sudo cp /vagrant/bgpd.conf /etc/frr/bgpd.conf
+
+sudo service frr restart
+############################################################################################################################
+{% set bridge = "xx" %}
+echo ">>>Creating vlan10 Bridge"
+{% for interface in device.get_interfaces()%}{% if interface.get_interface_type() == "bridge" %}sudo brctl addbr {{interface.get_local_interface()}}
+{% for if in device.get_interfaces()%}{% if if.get_interface_type() == "dummy" %}sudo brctl addif {{interface.get_local_interface()}} {{if.get_local_interface()}}
+{% endif %}{% endfor %}{% endif %}{% endfor %}
+echo ">>>Setting Bridge Address"
+{% for interface in device.get_interfaces()%}{% if interface.get_interface_type() == "bridge" %}sudo ifconfig {{interface.get_local_interface()}} {{interface.get_local_ip()}}/24{% endif %}{% endfor %}
+
+echo ">>>Setting Bridge/Interfaces UP"
+{% for interface in device.get_interfaces()%}{% if interface.get_interface_type() != "x" %}sudo ip link set dev {{interface.get_local_interface()}} up
+{% endif %}{% endfor %}{% endif %}

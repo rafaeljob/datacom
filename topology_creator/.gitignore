@@ -1,0 +1,6 @@
+# exclude everything except the root directory (/temp_scripts)
+Vagrantfile
+topology.dot
+
+# except gitignore
+!.gitignore

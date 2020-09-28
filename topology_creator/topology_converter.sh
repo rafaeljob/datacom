@@ -45,19 +45,27 @@ else
 fi
 
 wait $!
-echo -e "*****************DONE WATING VAGRANT UP*****************"
+echo -e "*****************DONE WAITING VAGRANT UP*****************"
 #sleep 50
 
 for host in $(seq -f "%02g" 1 $(($leaf * $host))); do
-	#echo "host"$host
 	echo -e "Running machine" "host"${host} "configs"
-	sudo vagrant ssh "host"$host -c "sudo chmod +x /vagrant/host.sh && sudo /vagrant/host.sh"
-	#sudo vagrant ssh "host"$host -c "sudo /vagrant/host.sh"
+	sudo vagrant ssh "host"$host -c "sudo chmod +x /vagrant/config.sh && sudo /vagrant/config.sh"
 done
 
 for leaf in $(seq -f "%02g" 1 $leaf); do
-	#echo "host"$host
 	echo -e "Running machine" "leaf"${leaf} "configs"
-	sudo vagrant ssh "leaf"$leaf -c "sudo chmod +x /vagrant/leaf.sh && sudo /vagrant/leaf.sh"
-	#sudo vagrant ssh "leaf"$leaf -c "sudo /vagrant/leaf.sh"
+	sudo vagrant ssh "leaf"$leaf -c "sudo chmod +x /vagrant/config.sh && sudo /vagrant/config.sh"
 done
+
+for leaf in $(seq -f "%02g" 1 $leaf); do
+	echo -e "Running machine" "spine"${spine} "configs"
+	sudo vagrant ssh "spine"$spine -c "sudo chmod +x /vagrant/config.sh && sudo /vagrant/config.sh"
+done
+
+#export DEBIAN_FRONTEND=noninteractive
+#echo ">>>Installing FRRouting"
+#curl -s https://deb.frrouting.org/frr/keys.asc | apt-key add -
+#FRRVER="frr-stable"
+#echo deb https://deb.frrouting.org/frr $(lsb_release -s -c) "frr-stable" | sudo tee -a /etc/apt/sources.list.d/frr.list
+#sudo apt update && sudo apt install frr frr-pythontools -qy

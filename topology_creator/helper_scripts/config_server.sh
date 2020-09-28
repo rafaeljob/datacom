@@ -6,6 +6,8 @@ echo "********************************************"
 
 sudo su 
 
+export DEBIAN_FRONTEND=noninteractive
+
 echo ">>>Updating"
 apt-get update
 
@@ -26,8 +28,8 @@ iface eth0 inet dhcp
 EOT
 
 #
-echo ">>>Changing Permission"
-chmod +x /vagrant/host.sh
+echo ">>>Changing Permission config.sh"
+chmod +x /vagrant/config.sh
 
 #
 echo ">>>Installing TShark"
