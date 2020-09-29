@@ -13,7 +13,9 @@ sudo ip route add 0/0 via {{interface.get_remote_ip()}} dev {{interface.get_loca
 echo ">>>Installing FRRouting"
 sudo curl -s https://deb.frrouting.org/frr/keys.asc | sudo apt-key add -
 sudo echo deb https://deb.frrouting.org/frr $(lsb_release -s -c) "frr-stable" | sudo tee -a /etc/apt/sources.list.d/frr.list
-sudo apt update && sudo apt install frr frr-pythontools -qy
+sudo apt update && sudo apt install -qy frr frr-pythontools > /dev/null
+
+wait $!
 
 NUM=$(sudo awk '/bgpd=no/{print NR}' /etc/frr/daemons)
 sudo sed -i "${NUM}c\bgpd=yes" /etc/frr/daemons
@@ -23,13 +25,29 @@ sudo cp /vagrant/zebra.conf /etc/frr/zebra.conf
 
 echo ">>>Copying bgpd.conf"
 sudo cp /vagrant/bgpd.conf /etc/frr/bgpd.conf
-sudo service frr restart
+
+echo ">>>Setting IP Forward"
+sudo sysctl -w net.ipv4.ip_forward=1 > /dev/null
+
+echo ">>>Enabling FRR Service"
+sudo systemctl enable frr.service > /dev/null
+
+echo ">>>Starting FRR Service"
+sudo systemctl start frr.service > /dev/null
+
+echo ">>>Removing frr.conf"
+sudo rm /etc/frr/frr.conf
+
+echo ">>>Starting FRR Service"
+sudo systemctl restart frr.service
 ############################################################################################################################
 {% elif device.get_function() == 'leaf' %}
 echo ">>>Installing FRRouting"
 sudo curl -s https://deb.frrouting.org/frr/keys.asc | sudo apt-key add -
 sudo echo deb https://deb.frrouting.org/frr $(lsb_release -s -c) "frr-stable" | sudo tee -a /etc/apt/sources.list.d/frr.list
-sudo apt update && sudo apt install frr frr-pythontools -qy
+sudo apt update && sudo apt install -qy frr frr-pythontools > /dev/null
+
+wait $!
 
 NUM=$(sudo awk '/bgpd=no/{print NR}' /etc/frr/daemons)
 sudo sed -i "${NUM}c\bgpd=yes" /etc/frr/daemons
@@ -40,7 +58,20 @@ sudo cp /vagrant/zebra.conf /etc/frr/zebra.conf
 echo ">>>Copying bgpd.conf"
 sudo cp /vagrant/bgpd.conf /etc/frr/bgpd.conf
 
-sudo service frr restart
+echo ">>>Setting IP Forward"
+sudo sysctl -w net.ipv4.ip_forward=1 > /dev/null
+
+echo ">>>Enabling FRR Service"
+sudo systemctl enable frr.service > /dev/null
+
+echo ">>>Starting FRR Service"
+sudo systemctl start frr.service > /dev/null
+
+echo ">>>Removing frr.conf"
+sudo rm /etc/frr/frr.conf
+
+echo ">>>Starting FRR Service"
+sudo systemctl restart frr.service
 ############################################################################################################################
 {% set bridge = "xx" %}
 echo ">>>Creating vlan10 Bridge"
