@@ -15,7 +15,8 @@ export DEBIAN_FRONTEND=noninteractive
 cat <<EOT > /etc/network/interfaces
 auto lo
 iface lo inet loopback
-
+	address 10.0.0.10/32
+	
 auto vagrant
 iface vagrant inet dhcp
 

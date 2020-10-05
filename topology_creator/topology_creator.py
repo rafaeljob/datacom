@@ -27,18 +27,20 @@ LEAF_NUM = 0
 EDGE_NUM = 0
 OS = ""
 MEMORY = 0
+PROTOCOL = ""
 VERBOSE = False
-VERSION = "0.2.1"
+VERSION = "0.3.0"
+
 SPINE_START_IP = "192.178."
 LEAF_START_IP = "172.16."
 START_AS = 65000 
 START_ID = "10.0.0."
 TEMP_PATH = "./temp_scripts/"
-ZEBRA_TEMPLATE = "./templates/zebra_template.j2"
-BGPD_TEMPLATE = "./templates/bgpd_template.j2"
+ZEBRA_TEMPLATE 	= "./templates/zebra_template.j2"
+BGPD_TEMPLATE 	= "./templates/bgpd_template.j2"
 CONFIG_TEMPLATE = "./templates/config_template.j2"
-LEAF_TEMPLATE = "./templates/leaf_template.j2"
-
+LEAF_TEMPLATE 	= "./templates/leaf_template.j2"
+RR_TEMPLATE 	= "./templates/route_reflector_template.j2"
 ##
 #PRINTS
 ##
@@ -89,6 +91,7 @@ def parser():
 	global EDGE_NUM
 	global OS
 	global MEMORY 
+	global PROTOCOL
 	global VERBOSE 
 
 	print_parse()
@@ -110,6 +113,9 @@ def parser():
 	parser.add_argument('-m', '--memory', dest='memory', metavar='memory', type=int, default=500,
 							help='Select the amount of memory for each machine (MB)')
 
+	parser.add_argument('-p', '--protocol', dest='protocol', choices=["evpn", "bgp"], default='bgp',
+				help='Choose the protocol \{evpn or bgp}')
+
 	parser.add_argument('-v', '--verbose', action="store_true",
 							help='Show every step made by this program')
 
@@ -124,6 +130,8 @@ def parser():
 	EDGE_NUM = args.edge
 	OS = args.os
 	MEMORY = args.memory
+	PROTOCOL = args.protocol
+
 	if args.verbose: VERBOSE = True
 	print("\tinput: %s" % ARG_STRING)
 
@@ -239,18 +247,39 @@ def create_config_files():
 			os.mkdir(path=path)
 			if device.get_function() != 'host':
 				write_zebra_file(device=device, path=path)
-				if device.get_function() == 'spine':
+				#if device.get_function() == 'spine':
+					
+				if PROTOCOL == 'evpn':
+					write_rr_file(device=device, path=path, router_id=START_ID + str(spine_id))
+				elif PROTOCOL == 'bgp':	
 					write_bgpd_file(device=device, path=path, router_id=START_ID + str(spine_id))
-					spine_id+= 1
-				elif device.get_function() == 'leaf':
-					write_bgpd_file(device=device, path=path, router_id=START_ID + str(leaf_id))
-					write_leaf_file(device=device, path=path)
-					leaf_id+= 1
+
+				spine_id+= 1
+				#elif device.get_function() == 'leaf':
+					#write_bgpd_file(device=device, path=path, router_id=START_ID + str(leaf_id))
+					#write_leaf_file(device=device, path=path)
+				leaf_id+= 1
 			#else:
 			write_config_file(device=device, path=path)		
 		except Exception as e:
 			print_fail(e)
 			exit(1)	
+
+def write_rr_file(device, path, router_id):
+	try:		
+		#le arquivo do template
+		template = jinja2.Template(open(RR_TEMPLATE).read())
+		#renderiza o template lido previamente com as informacoes extraidas da topologia
+		try:
+			with open(path + "/bgpd.conf", 'w') as outfile:
+				outfile.write(template.render(device=device, router_id=router_id))
+		except Exception as e:
+			print_fail(e)
+			exit(1)
+	except Exception as e:
+			print_fail(e)
+			exit(1)
+
 
 def write_bgpd_file(device, path, router_id):
 	try:		

@@ -1,0 +1,47 @@
+!
+!Created by Rafel Basso
+!	Template revision v1.0.0
+!
+hostname {{device.get_device_name()}}
+password zebra
+!
+router bgp {{device.get_as_number()}}
+ bgp router-id {{device.get_interfaces()[0].get_local_ip()}}
+ bgp log-neighbor-changes{% if device.get_function() == 'spine'%}
+ bgp bestpath as-path multipath-relax
+
+ neighbor RR peer-group
+ neighbor RR remote-as internal
+ neighbor RR advertisement-interval 0
+ neighbor RR timers 3 10
+ neighbor RR timers connect 5 
+{% for interface in device.get_interfaces() %} neighbor {{interface.get_local_interface()}} interface peer-group RR
+{% endfor %}!
+ address-family ipv4 unicast
+  neighbor RR route-reflector-client
+  neighbor RR activate
+  maximum-paths ibgp 16
+ exit-address-family
+!
+ address-family l2vpn evpn
+  neighbor RR route-reflector-client
+  neighbor RR activate
+ exit-address-family
+!{% elif device.get_function() == 'leaf'%}
+
+ neighbor RR peer-group
+ neighbor RR remote-as internal
+ neighbor RR advertisement-interval 0
+ neighbor RR timers 3 10
+ neighbor RR timers connect 5 
+{% for interface in device.get_interfaces() %}{% if "host" not in interface.get_remote_device() %}{% if "NOTHING" != interface.get_remote_ip() %}
+ neighbor {{interface.get_local_interface()}} interface peer-group RR{% endif %}{% endif %}{% endfor %}
+!
+ address-family l2vpn evpn
+  neighbor RR activate
+  advertise-all-vni
+ exit-address-family{% endif %}
+exit
+!
+line vty
+!
