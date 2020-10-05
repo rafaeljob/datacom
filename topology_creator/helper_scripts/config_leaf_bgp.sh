@@ -39,9 +39,9 @@ apt-get update
 echo ">>>Installing Bridge-Utils"
 apt-get install bridge-utils -qy
 
-echo ">>>Installing TShark"
-echo "wireshark-common wireshark-common/install-setuid boolean true" | debconf-set-selections
-apt-get install tshark -qy
+#echo ">>>Installing TShark"
+#echo "wireshark-common wireshark-common/install-setuid boolean true" | debconf-set-selections
+#apt-get install tshark -qy
 
 echo ">>>Changing Permission config.sh"
 chmod +x /vagrant/config.sh

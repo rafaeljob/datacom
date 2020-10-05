@@ -30,9 +30,9 @@ apt-get update
 #echo ">>>Installing Quagga"
 #apt-get install quagga quagga-doc -qy 
 
-echo ">>>Installing TShark"
-echo "wireshark-common wireshark-common/install-setuid boolean true" | sudo debconf-set-selections
-apt-get install tshark -qy
+#echo ">>>Installing TShark"
+#echo "wireshark-common wireshark-common/install-setuid boolean true" | sudo debconf-set-selections
+#apt-get install tshark -qy
 
 echo ">>>Changing Permission config.sh"
 chmod +x /vagrant/config.sh
