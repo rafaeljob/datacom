@@ -141,13 +141,11 @@ def create_machine():
 	for i in range(1, SPINE_NUM+1):
 		device_name = "spine%02d" % i
 		devices.append(Spine(device_name=device_name, memory=MEMORY, os=OS, vagrant="eth1", function="spine",
-								config="./helper_scripts/config_spine_bgp.sh", version="1.0.282", as_number=START_AS))
-
+								config="./helper_scripts/config_spine_bgp.sh", version="1.0.282", as_number=START_AS, router_id=START_ID + str(20+i)))
 	for i in range(1, LEAF_NUM+1):	
 		device_name = "leaf%02d" % i
 		devices.append(Leaf(device_name=device_name, memory=MEMORY, os=OS, vagrant="eth1", function="leaf",
-								config="./helper_scripts/config_leaf_bgp.sh", version="1.0.282", as_number=(START_AS+10+i)))
-
+								config="./helper_scripts/config_leaf_bgp.sh", version="1.0.282", as_number=(START_AS+10+i), router_id=START_ID + str(10+i)))
 	for i in range(1, (EDGE_NUM*LEAF_NUM)+1):	
 		device_name = "host%02d" % i
 		devices.append(Host(device_name=device_name, memory=MEMORY, os=OS, vagrant="eth1", function="host",

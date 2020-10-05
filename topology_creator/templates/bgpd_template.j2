@@ -6,7 +6,7 @@ hostname {{device.get_device_name()}}
 password zebra
 !
 router bgp {{device.get_as_number()}}
- bgp router-id {{device.get_interfaces()[0].get_local_ip()}}
+ bgp router-id {{device.get_router_id()}}
  bgp log-neighbor-changes
  timers bgp 3 9
  no bgp default ipv4-unicast{% for interface in device.get_interfaces() %}{% if "host" not in interface.get_remote_device() %}{% if "NOTHING" != interface.get_remote_ip() %}

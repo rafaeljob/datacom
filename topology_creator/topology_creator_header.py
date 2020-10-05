@@ -7,7 +7,7 @@ import sys
 
 class Device: 
 	def __init__(self, device_name, memory, os, tunnel_ip, 
-					vagrant, config, function, version, as_number):
+					vagrant, config, function, version, as_number, router_id):
 		self.device_name = device_name
 		self.memory = memory
 		self.os = os
@@ -17,6 +17,7 @@ class Device:
 		self.function = function
 		self.version = version
 		self.as_number = as_number
+		self.router_id = router_id
 		self.interfaces = []
 
 	# setters	
@@ -46,6 +47,9 @@ class Device:
 
 	def set_as_number(self, as_number):
 		self.as_number = as_number	
+
+	def set_router_id(self, router_id):
+		self.router_id = router_id	
 
 	def set_interfaces(self, interfaces):
 		self.interfaces = interfaces	
@@ -78,6 +82,9 @@ class Device:
 	def get_as_number(self):
 		return self.as_number	
 
+	def get_router_id(self):
+		return self.router_id	
+
 	def get_interfaces(self):
 		return self.interfaces								
 	
@@ -92,6 +99,7 @@ class Device:
 		print("- function" 		+ ":".ljust(12)	+ "%s" % self.function)
 		print("- version" 		+ ":".ljust(13)	+ "%s" % self.version)
 		print("- as_number"		+ ":".ljust(11) + "%s" % self.as_number)
+		print("- router_id"		+ ":".ljust(11)	+ "%s" % self.router_id)
 		print("- interfaces:")
 		for interface in self.interfaces:
 			interface.print_info()
@@ -104,9 +112,9 @@ class Device:
 
 class Spine(Device):
 	def __init__(self, device_name=None, memory=None, os=None, tunnel_ip=None, 
-					vagrant=None, config=None, function=None, version=None, as_number=None):
+					vagrant=None, config=None, function=None, version=None, as_number=None, router_id=None):
 		super(Spine, self).__init__(device_name, memory, os, tunnel_ip, 
-					vagrant, config, function, version, as_number)		
+					vagrant, config, function, version, as_number, router_id)		
 
 class Router(Device):
 	def __init__(self, device_name=None, memory=None, os=None, tunnel_ip=None, 
@@ -122,15 +130,15 @@ class Switch(Device):
 
 class Leaf(Device):
 	def __init__(self, device_name=None, memory=None, os=None, tunnel_ip=None, 
-					vagrant=None, config=None, function=None, version=None, as_number=None):
+					vagrant=None, config=None, function=None, version=None, as_number=None, router_id=None):
 		super(Leaf, self).__init__(device_name, memory, os, tunnel_ip, 
-					vagrant, config, function, version, as_number)
+					vagrant, config, function, version, as_number, router_id)
 
 class Host(Device):
 	def __init__(self, device_name=None, memory=None, os=None, tunnel_ip=None, 
-					vagrant=None, config=None, function=None, version=None, as_number=None):
+					vagrant=None, config=None, function=None, version=None, as_number=None, router_id=None):
 		super(Host, self).__init__(device_name, memory, os, tunnel_ip, 
-					vagrant, config, function, version, as_number)
+					vagrant, config, function, version, as_number, router_id)
 
 class Interface:
 	def __init__(self, local_interface=None, local_ip=None, local_port=None, mac=None, 
