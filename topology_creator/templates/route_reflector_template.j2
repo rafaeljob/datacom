@@ -11,36 +11,46 @@ router bgp {{device.get_as_number()}}
  bgp bestpath as-path multipath-relax
 
  neighbor RR peer-group
- neighbor RR remote-as internal
+ neighbor RR remote-as external
  neighbor RR advertisement-interval 0
  neighbor RR timers 3 10
  neighbor RR timers connect 5 
-{% for interface in device.get_interfaces() %} neighbor {{interface.get_local_interface()}} interface peer-group RR
+{% for interface in device.get_interfaces() %} neighbor {{interface.get_remote_ip()}} peer-group RR
 {% endfor %}!
  address-family ipv4 unicast
-  neighbor RR route-reflector-client
   neighbor RR activate
-  maximum-paths ibgp 16
+  redistribute connected route-map LOOPBACKS
  exit-address-family
 !
  address-family l2vpn evpn
-  neighbor RR route-reflector-client
+  !neighbor RR route-reflector-client
   neighbor RR activate
  exit-address-family
+
+route-map LOOPBACKS permit 10
+ match interface lo
 !{% elif device.get_function() == 'leaf'%}
 
- neighbor RR peer-group
- neighbor RR remote-as internal
- neighbor RR advertisement-interval 0
- neighbor RR timers 3 10
- neighbor RR timers connect 5 
+ neighbor fabirc peer-group
+ neighbor fabric remote-as external
+ neighbor fabric advertisement-interval 0
+ neighbor fabric timers 3 10
+ neighbor fabric timers connect 5 
 {% for interface in device.get_interfaces() %}{% if "host" not in interface.get_remote_device() %}{% if "NOTHING" != interface.get_remote_ip() %}
- neighbor {{interface.get_local_interface()}} interface peer-group RR{% endif %}{% endif %}{% endfor %}
+ neighbor {{interface.get_remote_ip()}} peer-group fabric{% endif %}{% endif %}{% endfor %}
 !
+ address-family ipv4 unicast
+  neighbor fabric activate
+  redistribute connected route-map LOOPBACKS
+ exit-address-family
+! 
  address-family l2vpn evpn
-  neighbor RR activate
+  neighbor fabric activate
   advertise-all-vni
- exit-address-family{% endif %}
+ exit-address-family
+
+route-map LOOPBACKS permit 10
+ match interface lo{% endif %}
 exit
 !
 line vty
