@@ -316,7 +316,7 @@ def write_config_file(device, path):
 		#renderiza o template lido previamente com as informacoes extraidas da topologia
 		try:
 			with open(path + "/config.sh", 'w') as outfile:
-				outfile.write(template.render(device=device))
+				outfile.write(template.render(device=device, protocol=PROTOCOL))
 		except Exception as e:
 			print_fail(e)
 			exit(1)

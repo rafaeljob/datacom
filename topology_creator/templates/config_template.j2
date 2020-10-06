@@ -73,15 +73,8 @@ sudo rm /etc/frr/frr.conf
 echo ">>>Restarting FRR Service"
 sudo systemctl restart frr.service
 
-#sudo install -m 775 -o frr -g frr -d /var/log/frr
-#sudo install -m 775 -o frr -g frrvty -d /etc/frr
-#sudo install -m 640 -o frr -g frrvty tools/etc/frr/vtysh.conf /etc/frr/vtysh.conf
-#sudo install -m 640 -o frr -g frr tools/etc/frr/frr.conf /etc/frr/frr.conf
-#sudo install -m 640 -o frr -g frr tools/etc/frr/daemons.conf /etc/frr/daemons.conf
-#sudo install -m 640 -o frr -g frr tools/etc/frr/daemons /etc/frr/daemons
-#chmod 640 file
-#chown frr:frrvty/frr file
 ############################################################################################################################
+{%if protocol == 'bgp' %}
 {% set bridge = "xx" %}
 echo ">>>Creating vlan10 Bridge"
 {% for interface in device.get_interfaces()%}{% if interface.get_interface_type() == "bridge" %}sudo brctl addbr {{interface.get_local_interface()}}
@@ -92,4 +85,16 @@ echo ">>>Setting Bridge Address"
 
 echo ">>>Setting Bridge/Interfaces UP"
 {% for interface in device.get_interfaces()%}{% if interface.get_interface_type() != "x" %}sudo ip link set dev {{interface.get_local_interface()}} up
-{% endif %}{% endfor %}{% endif %}
+{% endif %}{% endfor %}
+{% elif protocol == 'evpn' %}
+echo ">>>Creating vxlan10 Interface"
+sudo ip link add vxlan10 type vxlan id 10 dstport 4789 local 172.16.1.1 nolearning
+echo ">>>Creating br0 Bridge"
+sudo brctl addbr br0
+sudo brctl addif br0 vxlan10
+sudo brctl addif br0 swp1
+
+sudo brctl stp br0 off
+sudo ip link set up dev br0
+sudo ip link set up dev vxlan10
+{% endif %}{% endif %}
