@@ -15,13 +15,15 @@ router bgp {{device.get_as_number()}}
  neighbor fabric peer-group
  neighbor fabric advertisement-interval 0
  neighbor fabric timers 3 10
- neighbor fabric timers connect 5 
+ neighbor fabric timers connect 5
+ neighbor fabric capability extended-nexthop 
 {% for interface in device.get_interfaces() %} neighbor {{interface.get_remote_ip()}} peer-group fabric
  neighbor {{interface.get_remote_ip()}} remote-as {{interface.get_remote_as()}} 
 {% endfor %}!
 !
  address-family ipv4 unicast
   redistribute connected
+  neighbor fabric route-reflector-client
  exit-address-family
 ! 
  address-family l2vpn evpn
