@@ -20,6 +20,10 @@ router bgp {{device.get_as_number()}}
  neighbor {{interface.get_remote_ip()}} remote-as {{interface.get_remote_as()}} 
 {% endfor %}!
 !
+ address-family ipv4 unicast
+  redistribute connected
+ exit-address-family
+! 
  address-family l2vpn evpn
   neighbor fabric activate 
   neighbor fabric route-reflector-client
@@ -27,16 +31,20 @@ router bgp {{device.get_as_number()}}
 !{% elif device.get_function() == 'leaf'%}
  !no bgp default ipv4-unicast
 
- neighbor RR peer-group
- neighbor RR remote-as 65000
- neighbor RR advertisement-interval 0
- neighbor RR timers 3 10
- neighbor RR timers connect 5 
+ neighbor fabric peer-group
+ neighbor fabric remote-as 65000
+ neighbor fabric advertisement-interval 0
+ neighbor fabric timers 3 10
+ neighbor fabric timers connect 5 
 {% for interface in device.get_interfaces() %}{% if "host" not in interface.get_remote_device() %}{% if "NOTHING" != interface.get_remote_ip() %}
- neighbor {{interface.get_remote_ip()}} peer-group RR{% endif %}{% endif %}{% endfor %}
-! 
+ neighbor {{interface.get_remote_ip()}} peer-group fabric{% endif %}{% endif %}{% endfor %}
+!
+ address-family ipv4 unicast
+  redistribute connected
+ exit-address-family
+!  
  address-family l2vpn evpn
-  neighbor RR activate
+  neighbor fabric activate
   advertise-all-vni
  exit-address-family
 {% endif %}
