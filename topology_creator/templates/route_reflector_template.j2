@@ -46,6 +46,7 @@ router bgp {{device.get_as_number()}}
 !  
  address-family l2vpn evpn
   neighbor fabric activate
+  advertise-svi-ip
   advertise-all-vni
  exit-address-family
 {% endif %}
