@@ -88,7 +88,7 @@ echo ">>>Setting Bridge/Interfaces UP"
 {% endif %}{% endfor %}
 {% elif protocol == 'evpn' %}
 echo ">>>Creating vxlan10 Interface"
-sudo ip link add vxlan10 type vxlan id 10 dstport 4789 local 172.16.1.1 nolearning
+sudo ip link add vxlan10 type vxlan id 10 dstport 4789 local {{device.get_router_id()}} nolearning
 echo ">>>Creating br0 Bridge"
 sudo brctl addbr br0
 sudo brctl addif br0 vxlan10
