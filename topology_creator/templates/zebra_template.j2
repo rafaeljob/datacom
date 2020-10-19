@@ -9,8 +9,8 @@ interface eth0
 !
 interface lo
  ip address {{device.get_router_id()}}/32
-!{% for interface in device.get_interfaces() %}{% if "host" not in interface.get_remote_device() %}
-interface {{interface.get_local_interface()}}
+!{% for interface in device.get_interfaces() %}
+interface {{interface.get_local_interface()}}{% if "host" not in interface.get_remote_device() and "vxlan" not in interface.get_interface_type()%}
  ip address {{interface.get_local_ip()}}/{% if "host" in interface.get_remote_device() %}24{% else %}24{% endif %}{% endif %}
 !{% endfor %}
 ip forwarding

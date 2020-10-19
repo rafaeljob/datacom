@@ -142,7 +142,7 @@ class Host(Device):
 
 class Interface:
 	def __init__(self, local_interface=None, local_ip=None, local_port=None, mac=None, 
-		remote_device=None, remote_interface=None, remote_ip=None, remote_port=None, remote_as=None, interface_type=None):
+		remote_device=None, remote_interface=None, remote_ip=None, remote_port=None, remote_as=None, vni=None, interface_type=None):
 		self.local_interface = local_interface
 		self.local_ip = local_ip
 		self.local_port = local_port
@@ -152,6 +152,7 @@ class Interface:
 		self.remote_ip = remote_ip
 		self.remote_port = remote_port
 		self.remote_as = remote_as
+		self.vni = vni
 		self.interface_type = interface_type
 
 	# setters
@@ -181,6 +182,9 @@ class Interface:
 
 	def set_remote_as(self, remote_as):
 		self.remote_as = remote_as
+
+	def set_remote_as(self, vni):
+		self.vni = vni
 
 	def set_interface_type(self, interface_type):
 		self.interface_type = interface_type
@@ -213,6 +217,9 @@ class Interface:
 	def get_remote_as(self):
 		return self.remote_as
 
+	def get_vni(self):
+		return self.vni	
+
 	def get_interface_type(self):
 		return self.interface_type
 
@@ -227,6 +234,7 @@ class Interface:
 		print("".ljust(22) + "remote_ip" 		+ ":".ljust(19) + "%s" % self.remote_ip)
 		print("".ljust(22) + "remote_port"		+ ":".ljust(17) + "%s" % self.remote_port)
 		print("".ljust(22) + "remote_as"		+ ":".ljust(19) + "%s" % self.remote_as)
+		print("".ljust(22) + "vni"				+ ":".ljust(25) + "%s" % self.vni)
 		print("".ljust(22) + "interface_type"	+ ":".ljust(14) + "%s" % self.interface_type)
 		print("\n")
 		

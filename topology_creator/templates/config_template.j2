@@ -87,14 +87,21 @@ echo ">>>Setting Bridge/Interfaces UP"
 {% for interface in device.get_interfaces()%}{% if interface.get_interface_type() != "x" %}sudo ip link set dev {{interface.get_local_interface()}} up
 {% endif %}{% endfor %}
 {% elif protocol == 'evpn' %}
-echo ">>>Creating vxlan10 Interface"
-sudo ip link add vxlan10 type vxlan id 10 dstport 4789 local {{device.get_router_id()}} nolearning
 echo ">>>Creating br0 Bridge"
 sudo brctl addbr br0
-sudo brctl addif br0 vxlan10
-sudo brctl addif br0 swp1
+
+echo ">>>Creating vxlan10 Interface"
+{% for interface in device.get_interfaces()%}{% if interface.get_interface_type() == "vxlan" %}sudo ip link add {{interface.get_local_interface()}} type vxlan id {{interface.get_vni()}} dstport 4789 local {{device.get_router_id()}} nolearning
+sudo brctl addif br0 {{interface.get_local_interface()}}
+{% elif interface.get_interface_type() == "dummy" %}sudo brctl addif br0 {{interface.get_local_interface()}}{% endif %}{% endfor %}
+#sudo ip link add vxlan10 type vxlan id 10 dstport 4789 local {{device.get_router_id()}} nolearning
+
+#sudo brctl addif br0 vxlan10
+#sudo brctl addif br0 swp1
 
 sudo brctl stp br0 off
 sudo ip link set up dev br0
-sudo ip link set up dev vxlan10
+#sudo ip link set up dev vxlan10
+{% for interface in device.get_interfaces()%}sudo ip link set dev {{interface.get_local_interface()}} up
+{% endfor %}
 {% endif %}{% endif %}

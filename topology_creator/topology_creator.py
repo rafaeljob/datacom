@@ -162,7 +162,8 @@ def create_interface():
 
 	spine_local_machine_ip = 1		######1
 	leaf_local_network_ip = 1
-
+	vxlan_c = 30
+	vni = "10"
 	for i in range(0, len(devices)):
 		if devices[i].get_function() == 'leaf':
 			leaf_host = 1
@@ -171,8 +172,12 @@ def create_interface():
 			spine_local_network_ip = 100
 			leaf_local_machine_ip = 1
 
-			devices[i].append_interface(Interface(local_interface="vlan10", remote_interface="NOTHING", remote_device="NOTHING",
-					local_ip=LEAF_START_IP + str(leaf_local_network_ip) + '.' + str(leaf_local_machine_ip), remote_ip="NOTHING", remote_as="", interface_type="bridge"))
+			if PROTOCOL == 'bgp':
+				devices[i].append_interface(Interface(local_interface="vlan" + vni, remote_interface="NOTHING", remote_device="NOTHING",
+						local_ip=LEAF_START_IP + str(leaf_local_network_ip) + '.' + str(leaf_local_machine_ip), remote_ip="NOTHING", remote_as="", vni=10, interface_type="bridge"))
+			elif PROTOCOL == 'evpn':
+				devices[i].append_interface(Interface(local_interface="vxlan" + vni, remote_interface="NOTHING", remote_device="NOTHING",
+						local_ip=devices[i].get_router_id(), remote_ip="NOTHING", remote_as="", vni=10, interface_type="vxlan"))
 
 			for j in range(0, len(devices)):
 				if i != j and devices[j].get_function() != "leaf": 
@@ -199,9 +204,13 @@ def create_interface():
 							li_leaf = "swp%d" % leaf_host
 							ri_leaf = "eth1"
 
-							#local_ip = LEAF_START_IP + str(leaf_local_network_ip) + '.' + str(leaf_local_machine_ip)
-							local_ip = LEAF_START_IP + str(leaf_local_network_ip) + '.' + str(1)
-							remote_ip = LEAF_START_IP + str(leaf_local_network_ip) + '.' + str(leaf_local_machine_ip + 1)
+							if PROTOCOL == 'bgp':
+								local_ip = LEAF_START_IP + str(leaf_local_network_ip) + '.' + str(1)
+								remote_ip = LEAF_START_IP + str(leaf_local_network_ip) + '.' + str(leaf_local_machine_ip + 1)
+							elif PROTOCOL == 'evpn':
+								local_ip = devices[i].get_router_id();
+								remote_ip = "10.10.10" + '.' + str(vxlan_c + 1)
+								vxlan_c+= 1
 
 							devices[i].append_interface(Interface(local_interface=li_leaf, remote_interface=ri_leaf, remote_device=devices[j].get_device_name(),
 																	local_ip="0.0.0.0", remote_ip=remote_ip, remote_as=devices[j].get_as_number(), interface_type="dummy"))	#visao da leaf
