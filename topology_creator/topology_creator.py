@@ -378,7 +378,7 @@ def write_graph():
 
 	for device in devices:	
 		for interface in device.get_interfaces():
-			if interface.get_interface_type() != "bridge":
+			if interface.get_interface_type() != ("bridge" and "vxlan"):
 				graph.add_edge(create_edge(src_dev=device.get_device_name(),
 											rmt_dev=interface.get_remote_device(),
 											src_i=interface.get_local_interface(),
