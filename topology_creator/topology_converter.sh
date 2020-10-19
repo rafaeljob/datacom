@@ -48,9 +48,10 @@ wait $!
 echo -e "*****************DONE WAITING VAGRANT UP*****************"
 #sleep 50
 
-for host in $(seq -f "%02g" 1 $(($leaf * $host))); do
-	echo -e "Running machine" "host"${host} "configs"
-	sudo vagrant ssh "host"$host -c "sudo chmod +x /vagrant/config.sh && sudo /vagrant/config.sh"
+
+for spine in $(seq -f "%02g" 1 $spine); do
+	echo -e "Running machine" "spine"${spine} "configs"
+	sudo vagrant ssh "spine"$spine -c "sudo chmod +x /vagrant/config.sh && sudo /vagrant/config.sh"
 done
 
 for leaf in $(seq -f "%02g" 1 $leaf); do
@@ -58,9 +59,9 @@ for leaf in $(seq -f "%02g" 1 $leaf); do
 	sudo vagrant ssh "leaf"$leaf -c "sudo chmod +x /vagrant/config.sh && sudo /vagrant/config.sh"
 done
 
-for spine in $(seq -f "%02g" 1 $spine); do
-	echo -e "Running machine" "spine"${spine} "configs"
-	sudo vagrant ssh "spine"$spine -c "sudo chmod +x /vagrant/config.sh && sudo /vagrant/config.sh"
+for host in $(seq -f "%02g" 1 $(($leaf * $host))); do
+	echo -e "Running machine" "host"${host} "configs"
+	sudo vagrant ssh "host"$host -c "sudo chmod +x /vagrant/config.sh && sudo /vagrant/config.sh"
 done
 
 #export DEBIAN_FRONTEND=noninteractive
