@@ -29,12 +29,12 @@ OS = ""
 MEMORY = 0
 PROTOCOL = ""
 VERBOSE = False
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 
 SPINE_START_IP = "192.178."
 LEAF_START_IP = "172.16."
-START_AS = 65000 
 START_ID = "10.0.0."
+START_AS = 65000 
 TEMP_PATH = "./temp_scripts/"
 ZEBRA_TEMPLATE 	= "./templates/zebra_template.j2"
 BGPD_TEMPLATE 	= "./templates/bgpd_template.j2"
@@ -160,10 +160,10 @@ def create_interface():
 	spine_leaf = 1
 	host_list = []
 
-	spine_local_machine_ip = 1		######1
+	spine_local_machine_ip = 1
 	leaf_local_network_ip = 1
 	vxlan_c = 30
-	vni = "10"
+	vni = 10
 	for i in range(0, len(devices)):
 		if devices[i].get_function() == 'leaf':
 			leaf_host = 1
@@ -173,11 +173,11 @@ def create_interface():
 			leaf_local_machine_ip = 1
 
 			if PROTOCOL == 'bgp':
-				devices[i].append_interface(Interface(local_interface="vlan" + vni, remote_interface="NOTHING", remote_device="NOTHING",
-						local_ip=LEAF_START_IP + str(leaf_local_network_ip) + '.' + str(leaf_local_machine_ip), remote_ip="NOTHING", remote_as="", vni=10, interface_type="bridge"))
+				devices[i].append_interface(Interface(local_interface="vlan" + str(vni), remote_interface="NOTHING", remote_device="NOTHING",
+						local_ip=LEAF_START_IP + str(leaf_local_network_ip) + '.' + str(leaf_local_machine_ip), remote_ip="NOTHING", remote_as="", vni=vni, interface_type="bridge"))
 			elif PROTOCOL == 'evpn':
-				devices[i].append_interface(Interface(local_interface="vxlan" + vni, remote_interface="NOTHING", remote_device="NOTHING",
-						local_ip=devices[i].get_router_id(), remote_ip="NOTHING", remote_as="", vni=10, interface_type="vxlan"))
+				devices[i].append_interface(Interface(local_interface="vxlan" + str(vni), remote_interface="NOTHING", remote_device="NOTHING",
+						local_ip=devices[i].get_router_id(), remote_ip="NOTHING", remote_as="", vni=vni, interface_type="vxlan"))
 
 			for j in range(0, len(devices)):
 				if i != j and devices[j].get_function() != "leaf": 
@@ -218,12 +218,10 @@ def create_interface():
 							devices[j].append_interface(Interface(local_interface=ri_leaf, remote_interface=li_leaf, remote_device=devices[i].get_device_name(),
 																	local_ip=remote_ip, remote_ip=local_ip, remote_as=devices[i].get_as_number(), interface_type="x"))	#visao do host
 							leaf_host+=	1
-							#leaf_local_machine_ip+= 1
 							leaf_local_machine_ip+= 1
 							host_list.append(devices[j])
 							
 			spine_leaf+= 1
-			#spine_local_network_ip+= 1
 			leaf_local_network_ip+= 1
 
 	if VERBOSE:
@@ -246,40 +244,32 @@ def create_config_files():
 					exit(1)				
 
 	print_create_temp()
-	spine_id = 21
-	leaf_id = 11
+	
 	for device in devices:
 		try:
 			path = TEMP_PATH + device.get_device_name()
 			os.mkdir(path=path)
 			if device.get_function() != 'host':
 				write_zebra_file(device=device, path=path)
-				#if device.get_function() == 'spine':
 					
 				if PROTOCOL == 'evpn':
-					write_rr_file(device=device, path=path, router_id=START_ID + str(spine_id))
+					write_rr_file(device=device, path=path)
 				elif PROTOCOL == 'bgp':	
-					write_bgpd_file(device=device, path=path, router_id=START_ID + str(spine_id))
+					write_bgpd_file(device=device, path=path)
 
-				spine_id+= 1
-				#elif device.get_function() == 'leaf':
-					#write_bgpd_file(device=device, path=path, router_id=START_ID + str(leaf_id))
-					#write_leaf_file(device=device, path=path)
-				leaf_id+= 1
-			#else:
 			write_config_file(device=device, path=path)		
 		except Exception as e:
 			print_fail(e)
 			exit(1)	
 
-def write_rr_file(device, path, router_id):
+def write_rr_file(device, path):
 	try:		
 		#le arquivo do template
 		template = jinja2.Template(open(RR_TEMPLATE).read())
 		#renderiza o template lido previamente com as informacoes extraidas da topologia
 		try:
 			with open(path + "/bgpd.conf", 'w') as outfile:
-				outfile.write(template.render(device=device, router_id=router_id))
+				outfile.write(template.render(device=device))
 		except Exception as e:
 			print_fail(e)
 			exit(1)
@@ -288,14 +278,14 @@ def write_rr_file(device, path, router_id):
 			exit(1)
 
 
-def write_bgpd_file(device, path, router_id):
+def write_bgpd_file(device, path):
 	try:		
 		#le arquivo do template
 		template = jinja2.Template(open(BGPD_TEMPLATE).read())
 		#renderiza o template lido previamente com as informacoes extraidas da topologia
 		try:
 			with open(path + "/bgpd.conf", 'w') as outfile:
-				outfile.write(template.render(device=device, router_id=router_id))
+				outfile.write(template.render(device=device))
 		except Exception as e:
 			print_fail(e)
 			exit(1)
