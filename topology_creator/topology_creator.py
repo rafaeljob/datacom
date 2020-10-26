@@ -34,13 +34,16 @@ VERSION = "0.4.0"
 SPINE_START_IP = "192.178."
 LEAF_START_IP = "172.16."
 START_ID = "10.0.0."
-START_AS = 65000 
-TEMP_PATH = "./temp_scripts/"
+START_AS = 65000
+
+TEMP_PATH 		= "./temp_scripts/"
 ZEBRA_TEMPLATE 	= "./templates/zebra_template.j2"
 BGPD_TEMPLATE 	= "./templates/bgpd_template.j2"
 CONFIG_TEMPLATE = "./templates/config_template.j2"
 LEAF_TEMPLATE 	= "./templates/leaf_template.j2"
 RR_TEMPLATE 	= "./templates/route_reflector_template.j2"
+INFO_TEMPLATE	= "./templates/info_template.j2"
+
 ##
 #PRINTS
 ##
@@ -56,6 +59,9 @@ def print_create_interface():
 
 def print_write_graph():
 	print(bcolors.OK + "#" + bcolors.END + " WRITING GRAPH VX")
+
+def print_write_info():
+	print(bcolors.OK + "#" + bcolors.END + " WRITING INFO FILE")
 
 def print_create_temp():
 	print(bcolors.OK + "#" + bcolors.END + " CREATING TEMPORARY CONFIG FILES")
@@ -233,7 +239,9 @@ def create_config_files():
 
 		print_delete_temp()
 		for directory in os.listdir(TEMP_PATH):
-			if directory != ".gitignore":
+			if directory == "interfaces.txt":
+				os.remove(TEMP_PATH + directory)
+			elif directory != ".gitignore":
 				try:
 					if os.listdir(TEMP_PATH + directory):
 						for file in os.listdir(TEMP_PATH + directory):
@@ -261,6 +269,22 @@ def create_config_files():
 		except Exception as e:
 			print_fail(e)
 			exit(1)	
+
+def write_info_file(path):
+	print_write_info()
+	try:		
+		#le arquivo do template
+		template = jinja2.Template(open(INFO_TEMPLATE).read())
+		#renderiza o template lido previamente com as informacoes extraidas da topologia
+		try:
+			with open(path + "/interfaces.txt", 'w') as outfile:
+				outfile.write(template.render(devices=devices))
+		except Exception as e:
+			print_fail(e)
+			exit(1)
+	except Exception as e:
+			print_fail(e)
+			exit(1)
 
 def write_rr_file(device, path):
 	try:		
@@ -387,6 +411,7 @@ def main():
 	create_machine()
 	create_interface()
 	create_config_files()
+	write_info_file(TEMP_PATH)
 	write_graph()
 
 if __name__ == "__main__":

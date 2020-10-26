@@ -1,5 +1,10 @@
 #!/bin/bash
 
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
 args=$*
 read -a args_array <<< $args
 size_array=${#args_array[@]}
@@ -19,7 +24,7 @@ done
 start=$(date +'%X')
 
 if [[ -z $args ]]; then
-	echo "Empty Arguments"
+	echo -e "\n>>Empty Arguments"
 	exit 0
 elif [[ $args == "-h" ]] || [[ $args == "--help" ]]; then
 	python3 -B topology_creator.py $args
@@ -57,8 +62,8 @@ done
 
 finish=$(date +'%X')
 
-echo "\n>>START: " ${start}
-echo ">>END: " ${finish}
-echo ">>ARGUMENTS: " $args
+echo -e "\n>>START:\t" ${start}
+echo -e ">>END:\t" ${finish}
+echo -e ">>ARGUMENTS:\t" $args "\n"
 
 exit 0

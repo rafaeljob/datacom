@@ -1,0 +1,5 @@
+############################################
+
+{% for device in devices %}{% for interface in device.get_interfaces()%}{{ device.get_device_name() }}	{{ interface.get_local_interface() }}	{{ interface.get_local_ip() }}
+{% endfor %}
+{% endfor %}############################################
