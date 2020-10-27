@@ -62,8 +62,8 @@ done
 
 finish=$(date +'%X')
 
-echo -e "\n>>START:\t" ${start}
-echo -e ">>END:\t" ${finish}
-echo -e ">>ARGUMENTS:\t" $args "\n"
+echo -e "\n>>ARGUMENTS:  " $args 
+echo -e ">>START:  " ${start}
+echo -e ">>END:    " ${finish} "\n"
 
 exit 0
