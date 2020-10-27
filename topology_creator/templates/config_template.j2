@@ -27,7 +27,7 @@ echo ">>>Installing FRRouting"
 #sudo apt update && sudo apt install -qy frr frr-pythontools > /dev/null
 
 curl -sf https://deb.frrouting.org/frr/keys.asc; RESP=$?
-if [[ $RESP = 6 ]]; then
+if [[ $RESP != 0 ]]; then
 		echo -e ">>>Trying deb-us"
         sudo curl -s https://deb-us.frrouting.org/frr/keys.asc | sudo apt-key add -
         sudo echo deb https://deb-us.frrouting.org/frr $(lsb_release -s -c) "frr-stable" | sudo tee -a /etc/apt/sources.list.d/frr.list
@@ -71,7 +71,7 @@ echo ">>>Installing FRRouting"
 #sudo apt update && sudo apt install -qy frr frr-pythontools > /dev/null
 
 curl -sf https://deb.frrouting.org/frr/keys.asc; RESP=$?
-if [[ $RESP = 6 ]]; then
+if [[ $RESP != 0 ]]; then
 		echo -e ">>>Trying deb-us"
         sudo curl -s https://deb-us.frrouting.org/frr/keys.asc | sudo apt-key add -
         sudo echo deb https://deb-us.frrouting.org/frr $(lsb_release -s -c) "frr-stable" | sudo tee -a /etc/apt/sources.list.d/frr.list
