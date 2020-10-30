@@ -18,24 +18,25 @@ echo ">>>Creating eth1 Interface"
 
 echo ">>>Adding New Default Gateway"
 sudo ip route add 0/0 dev {{interface.get_local_interface()}}{% endfor %}
+
+sudo echo -e "\n#add for test\n{% for host in devices %}{% if host.get_function() == "host" and host.get_device_name() != device.get_device_name() %}{% for interface in host.get_interfaces()%}{{interface.get_local_ip()}}\t{{host.get_device_name()}}
+{% endfor %}{% endif %}{% endfor %}" | sudo tee -a /etc/hosts
+
 {% endif %}
 ############################################################################################################################
 {% elif device.get_function() == 'spine' %}
-echo ">>>Installing FRRouting"
-#sudo curl -s https://deb.frrouting.org/frr/keys.asc | sudo apt-key add -
-#sudo echo deb https://deb.frrouting.org/frr $(lsb_release -s -c) "frr-stable" | sudo tee -a /etc/apt/sources.list.d/frr.list
-#sudo apt update && sudo apt install -qy frr frr-pythontools > /dev/null
 
-curl -sf https://deb.frrouting.org/frr/keys.asc; RESP=$?
+echo ">>>Installing FRRouting"
+curl -sf https://deb.frrouting.org/frr/keys.asc -o key.asc; RESP=$?
 if [[ $RESP != 0 ]]; then
-		echo -e ">>>Trying deb-us"
-        sudo curl -s https://deb-us.frrouting.org/frr/keys.asc | sudo apt-key add -
-        sudo echo deb https://deb-us.frrouting.org/frr $(lsb_release -s -c) "frr-stable" | sudo tee -a /etc/apt/sources.list.d/frr.list
-		sudo apt update && sudo apt install -qy frr frr-pythontools > /dev/null
-else
-	sudo curl -s https://deb.frrouting.org/frr/keys.asc | sudo apt-key add -
-	sudo echo deb https://deb.frrouting.org/frr $(lsb_release -s -c) "frr-stable" | sudo tee -a /etc/apt/sources.list.d/frr.list
+	echo -e ">>>Trying deb-us"
+	sudo curl -s https://deb-us.frrouting.org/frr/keys.asc | sudo apt-key add -
+	sudo echo deb https://deb-us.frrouting.org/frr $(lsb_release -s -c) "frr-stable" | sudo tee -a /etc/apt/sources.list.d/frr.list
 	sudo apt update && sudo apt install -qy frr frr-pythontools > /dev/null
+else
+	sudo apt-key add key.asc
+	sudo echo deb https://deb.frrouting.org/frr $(lsb_release -s -c) "frr-stable" | sudo tee -a /etc/apt/sources.list.d/frr.list
+	sudo apt-get update && sudo apt-get install -qy frr frr-pythontools > /dev/null
 fi
 
 wait $!
@@ -65,21 +66,18 @@ echo ">>>Restarting FRR Service"
 sudo systemctl restart frr.service
 ############################################################################################################################
 {% elif device.get_function() == 'leaf' %}
-echo ">>>Installing FRRouting"
-#sudo curl -s https://deb.frrouting.org/frr/keys.asc | sudo apt-key add -
-#sudo echo deb https://deb.frrouting.org/frr $(lsb_release -s -c) "frr-stable" | sudo tee -a /etc/apt/sources.list.d/frr.list
-#sudo apt update && sudo apt install -qy frr frr-pythontools > /dev/null
 
-curl -sf https://deb.frrouting.org/frr/keys.asc; RESP=$?
+echo ">>>Installing FRRouting"
+curl -sf https://deb.frrouting.org/frr/keys.asc -o key.asc; RESP=$?
 if [[ $RESP != 0 ]]; then
-		echo -e ">>>Trying deb-us"
-        sudo curl -s https://deb-us.frrouting.org/frr/keys.asc | sudo apt-key add -
-        sudo echo deb https://deb-us.frrouting.org/frr $(lsb_release -s -c) "frr-stable" | sudo tee -a /etc/apt/sources.list.d/frr.list
-		sudo apt update && sudo apt install -qy frr frr-pythontools > /dev/null
-else
-	sudo curl -s https://deb.frrouting.org/frr/keys.asc | sudo apt-key add -
-	sudo echo deb https://deb.frrouting.org/frr $(lsb_release -s -c) "frr-stable" | sudo tee -a /etc/apt/sources.list.d/frr.list
+	echo -e ">>>Trying deb-us"
+	sudo curl -s https://deb-us.frrouting.org/frr/keys.asc | sudo apt-key add -
+	sudo echo deb https://deb-us.frrouting.org/frr $(lsb_release -s -c) "frr-stable" | sudo tee -a /etc/apt/sources.list.d/frr.list
 	sudo apt update && sudo apt install -qy frr frr-pythontools > /dev/null
+else
+	sudo apt-key add key.asc
+	sudo echo deb https://deb.frrouting.org/frr $(lsb_release -s -c) "frr-stable" | sudo tee -a /etc/apt/sources.list.d/frr.list
+	sudo apt-get update && sudo apt-get install -qy frr frr-pythontools > /dev/null
 fi
 
 wait $!
@@ -126,18 +124,17 @@ echo ">>>Setting Bridge/Interfaces UP"
 echo ">>>Creating vxlan10 Interface"
 {% for interface in device.get_interfaces()%}{% if interface.get_interface_type() == "vxlan" %}sudo ip link add {{interface.get_local_interface()}} type vxlan id {{interface.get_vni()}} dstport 4789 local {{device.get_router_id()}} nolearning
 {% endif %}{% endfor %}
-#sudo ip link add vxlan10 type vxlan id 10 dstport 4789 local {{device.get_router_id()}} nolearning
+
 echo ">>>Creating br0 Bridge"
 sudo brctl addbr br0
 sudo brctl stp br0 off
 {% for interface in device.get_interfaces()%}{% if interface.get_interface_type() != "x" %}sudo brctl addif br0 {{interface.get_local_interface()}}
 {% endif %}{% endfor %}
-#sudo brctl addif br0 vxlan10
-#sudo brctl addif br0 swp1
+
 {% for interface in device.get_interfaces()%}{% if interface.get_interface_type() != "x" %}sudo ip link set up dev {{interface.get_local_interface()}}
 {% endif %}{% endfor %}
 
 sudo ip link set up dev br0
-#sudo ip link set up dev vxlan10
-#sudo ip link set up dev swp1
 {% endif %}{% endif %}
+
+

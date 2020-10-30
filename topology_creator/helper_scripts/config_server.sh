@@ -11,9 +11,6 @@ export DEBIAN_FRONTEND=noninteractive
 echo ">>>Updating"
 apt-get update
 
-#echo "retry 1;" >> /etc/dhcp/dhclient.conf
-#echo "timeout 600;" >> /etc/dhcp/dhclient.conf
-
 # some config still learning :p
 cat <<EOT > /etc/network/interfaces
 auto lo

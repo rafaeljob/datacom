@@ -31,7 +31,8 @@ router bgp {{device.get_as_number()}}
  exit-address-family
 !{% elif device.get_function() == 'leaf'%}
  !no bgp default ipv4-unicast
-
+ bgp bestpath as-path multipath-relax
+ 
  neighbor fabric peer-group
  neighbor fabric remote-as external
  neighbor fabric advertisement-interval 0
