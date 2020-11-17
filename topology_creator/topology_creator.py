@@ -1,13 +1,13 @@
 ####
-## Dev by Rafael Basso
-##
+## 
+#   Dev by Rafael Basso
 ##
 ####
 
 
-##
-#IMPORTS
-##
+#
+##  IMPORTS
+###
 
 from topology_creator_header import *
 import sys
@@ -16,23 +16,32 @@ import bcolors
 import os
 import pydotplus
 import jinja2
+import math
 
-##
-#GLOBAL VARS
-##
+#
+##  GLOBAL VARS
+###
 
-devices = []
+DEVICES = []
+SPINES = []
+LEAFS = []
+HOSTS = []
+IP_LIST = []
+
 SPINE_NUM = 0
 LEAF_NUM = 0
 EDGE_NUM = 0
+LAN_NUM = 0 
 OS = ""
 MEMORY = 0
 PROTOCOL = ""
 VERBOSE = False
-VERSION = "0.4.0"
+CLEAN = False
+VERSION = "0.4.1"
 
-SPINE_START_IP = "192.178."
-LEAF_START_IP = "172.16."
+SPINE_START_IP = "192.178.0.0"
+VLAN_START_IP = "172.16.0.0"
+VXLAN_START_IP = "10.10.10.0"
 START_ID = "10.0.0."
 START_AS = 65000
 
@@ -43,10 +52,11 @@ CONFIG_TEMPLATE = "./templates/config_template.j2"
 LEAF_TEMPLATE 	= "./templates/leaf_template.j2"
 RR_TEMPLATE 	= "./templates/route_reflector_template.j2"
 INFO_TEMPLATE	= "./templates/info_template.j2"
+HOST_CONFIG_TEMPLATE = "./templates/host_configure_template.j2"
 
-##
-#PRINTS
-##
+#
+##	PRINTS
+###
 
 def print_parse():
 	print(bcolors.OK + "#" + bcolors.END + " PARSING ARGUMENTS")
@@ -69,40 +79,36 @@ def print_create_temp():
 def print_delete_temp():
 	print(bcolors.OK + "#" + bcolors.END + " DELETING EXISTING TEMPORARY CONFIG FILES")
 
+def print_delete_files():
+	print(bcolors.OK + "#" + bcolors.END + " DELETING EXISTING TEMPORARY FILES")
+
 def print_fail(exception):
 	print(bcolors.FAIL + "#" + bcolors.END + " ERROR: " + "(%s)" % exception)
 
-##
-#DEFINES
-##
+#
+##	DEFINES
+###
  
-def list():
-	for device in devices:
+def list(lst):
+	for device in lst:
 		device.print_info()
-
-def add(device, device_name):
-	if(device == "spine"):
-		devices.append(Spine(device_name=device_name))
-	elif(device == "router"):
-		devices.append(Router(device_name=device_name))
-	elif(device == "switch"):
-		devices.append(Switch(device_name=device_name))
-	elif(device == "host"):	
-		devices.append(Host(device_name=device_name))
 
 def parser():
 
 	global SPINE_NUM
 	global LEAF_NUM
 	global EDGE_NUM
+	global LAN_NUM
 	global OS
 	global MEMORY 
 	global PROTOCOL
+	global TUNNEL
+	global CLEAN
 	global VERBOSE 
 
-	print_parse()
-
 	parser = argparse.ArgumentParser(description='Spine-leaf Topology Creator')
+
+	#group = parser.add_mutually_exclusive_group()
 
 	parser.add_argument('-s', '--spine', dest='spine', metavar='spine', type=int, default=1,
 							help='Select the amount of spine machines in this topology')
@@ -122,12 +128,19 @@ def parser():
 	parser.add_argument('-p', '--protocol', dest='protocol', choices=["evpn", "bgp"], default='bgp',
 				help='Choose the protocol \{evpn or bgp}')
 
+	parser.add_argument('-ln', '--lan', dest='lan', metavar='lan', type=int, default=1,
+							help='Select the amount of VxLAN in each leaf')
+
 	parser.add_argument('-v', '--verbose', action="store_true",
 							help='Show every step made by this program')
+
+	parser.add_argument('--clean', action="store_true",
+							help='Remove all temp files')
 
 	parser.add_argument('--version', action='version', version="Spine-leaf Topology Creator v%s" % VERSION,
 							help='Shows the current version of this Spine-leaf Topology Creator')
 
+	print_parse()
 	args = parser.parse_args()
 	ARG_STRING = " ".join(sys.argv)
 
@@ -137,230 +150,194 @@ def parser():
 	OS = args.os
 	MEMORY = args.memory
 	PROTOCOL = args.protocol
+	LAN_NUM = args.lan
 
 	if args.verbose: VERBOSE = True
-	print("\tinput: %s" % ARG_STRING)
+	if args.clean: CLEAN = True
+	#print("\tinput: %s" % ARG_STRING)
 
 def create_machine():
 	print_create_machine()
 
 	for i in range(1, SPINE_NUM+1):
 		device_name = "spine%02d" % i
-		devices.append(Spine(device_name=device_name, memory=MEMORY, os=OS, vagrant="eth1", function="spine",
+		SPINES.append(Spine(device_name=device_name, memory=MEMORY, os=OS, vagrant="eth1", function="spine",
 								config="./helper_scripts/config_spine_bgp.sh", version="1.0.282", as_number=START_AS, router_id=START_ID + str(20+i)))
 	for i in range(1, LEAF_NUM+1):	
 		device_name = "leaf%02d" % i
-		devices.append(Leaf(device_name=device_name, memory=MEMORY, os=OS, vagrant="eth1", function="leaf",
+		LEAFS.append(Leaf(device_name=device_name, memory=MEMORY, os=OS, vagrant="eth1", function="leaf",
 								config="./helper_scripts/config_leaf_bgp.sh", version="1.0.282", as_number=(START_AS+10+i), router_id=START_ID + str(10+i)))
-	for i in range(1, (EDGE_NUM*LEAF_NUM)+1):	
+	for i in range(1, (EDGE_NUM*LEAF_NUM*LAN_NUM)+1):	
 		device_name = "host%02d" % i
-		devices.append(Host(device_name=device_name, memory=MEMORY, os=OS, vagrant="eth1", function="host",
-								config="./helper_scripts/config_server.sh", version="1.0.282"))
+		HOSTS.append(Host(device_name=device_name, memory=MEMORY, os=OS, vagrant="eth1", function="host",
+								config="./helper_scripts/config_server.sh", version="1.0.282"))	
 
-	if VERBOSE:
-		list()	
+def spine_leaf_interface():
+	nt_list = []
+	#all interfaces are created considering the Leafs vision
+	for i in range(0, len(LEAFS)):
+		rinf = 'swp%d' % (i+1)
+		network = nt_fetch(SPINE_START_IP, nt_list, 2, 1)
 
-def create_interface():
-	print_create_interface()
+		for j in range(0, len(SPINES)):
+			linf = 'swp%d' % (j+51)
+			network = nt_fetch(network, nt_list, 2, 100)
+			rip = ip_fetch(network)
+			lip = ip_fetch(network)
 
-	spine_leaf = 1
-	host_list = []
+			LEAFS[i].append_interface(Interface(local_interface=linf, remote_interface=rinf, remote_device=SPINES[j].get_device_name(),
+										local_ip=lip, remote_ip=rip, remote_as=SPINES[j].get_as_number(), interface_type="x"))	
 
-	spine_local_machine_ip = 1
-	leaf_local_network_ip = 1
-	vxlan_c = 30
-	vni = 10
-	for i in range(0, len(devices)):
-		if devices[i].get_function() == 'leaf':
-			leaf_host = 1
-			leaf_spine = 50
-
-			spine_local_network_ip = 100
-			leaf_local_machine_ip = 1
-
+			SPINES[j].append_interface(Interface(local_interface=rinf, remote_interface=linf, remote_device=LEAFS[i].get_device_name(),
+										local_ip=rip, remote_ip=lip, remote_as=LEAFS[i].get_as_number(), interface_type="x"))
+				
+def leaf_host_interface():
+	nt_list = []
+	#all interfaces are created considering the Leafs vision
+	for i in range(0, len(LEAFS)):
+		for l in range(1, LAN_NUM+1):
 			if PROTOCOL == 'bgp':
-				devices[i].append_interface(Interface(local_interface="vlan" + str(vni), remote_interface="NOTHING", remote_device="NOTHING",
-						local_ip=LEAF_START_IP + str(leaf_local_network_ip) + '.' + str(leaf_local_machine_ip), remote_ip="NOTHING", remote_as="", vni=vni, interface_type="bridge"))
+				network = nt_fetch(VLAN_START_IP, nt_list, 2, 1)
+				lip = ip_fetch(network)
+				LEAFS[i].append_interface(Interface(local_interface="vlan" + str(10), remote_interface="NOTHING", remote_device="NOTHING",
+							local_ip=lip, remote_ip="NOTHING", remote_as="", vni=10, interface_type="bridge"))
+	
 			elif PROTOCOL == 'evpn':
-				devices[i].append_interface(Interface(local_interface="vxlan" + str(vni), remote_interface="NOTHING", remote_device="NOTHING",
-						local_ip=devices[i].get_router_id(), remote_ip="NOTHING", remote_as="", vni=vni, interface_type="vxlan"))
+				network = VXLAN_START_IP
+				lip = LEAFS[i].get_router_id()
+				#for l in range(1, LAN_NUM+1):
+				LEAFS[i].append_interface(Interface(local_interface="vxlan" + str(l*10), remote_interface="NOTHING", remote_device="NOTHING",
+									local_ip=lip, remote_ip="NOTHING", remote_as="", vni=(l*10), interface_type="vxlan"))
+				LEAFS[i].append_interface(Interface(local_interface="br" + str(l*10), remote_interface="NOTHING", remote_device="NOTHING",
+									local_ip="NOTHING", remote_ip="NOTHING", remote_as="", vni=(l*10), interface_type="bridge"))
+				
+			for j in range((EDGE_NUM*LAN_NUM*i) + (l-1)*EDGE_NUM, (EDGE_NUM*LAN_NUM*(i+1)) - (LAN_NUM-l)*EDGE_NUM):
+				linf = 'swp%d' % (1+j-(EDGE_NUM*LAN_NUM*i))
+				rip = ip_fetch(network)
+	
+				LEAFS[i].append_interface(Interface(local_interface=linf, remote_interface='eth1', remote_device=HOSTS[j].get_device_name(),
+									local_ip='0.0.0.0', remote_ip=rip, remote_as=HOSTS[j].get_as_number(), vni=(l*10), interface_type="dummy"))	#add vni
+				
+				HOSTS[j].append_interface(Interface(local_interface='eth1', remote_interface=linf, remote_device=LEAFS[i].get_device_name(),
+									local_ip=rip, remote_ip=lip, remote_as=LEAFS[i].get_as_number(), interface_type="x"))	
 
-			for j in range(0, len(devices)):
-				if i != j and devices[j].get_function() != "leaf": 
+def ip_fetch(network):
+	lst = network.split('.')
+	new = lst[3]
+
+	while 1:
+		new = ("%d" % (int(new, 10)+1))
+		lst[3] = new
+		new_ip = '.'.join(lst)
+		if new_ip not in IP_LIST:
+			IP_LIST.append(new_ip)
+			break
+	return new_ip
+
+def nt_fetch(prefix, nt_list, Nbyte, offset):
+	lst = prefix.split('.')
+	new = lst[Nbyte]
+
+	while 1:
+		new = ("%d" % (int(new, 10)+offset))
+		lst[Nbyte] = new
+		new_nt = '.'.join(lst)
+		if new_nt not in nt_list:
+			nt_list.append(new_nt)
+			break
+	return new_nt			
+
+def clean_files():
+	print_delete_files()
+	for directory in os.listdir("./"):
+		if directory == "Vagrantfile" or directory == "topology.dot":
+			try:
+				os.remove("./" + directory)
+			except Exception as e:
+				print_fail(e)
+				exit(1)
 					
-					if devices[j] not in host_list:
+def clean_temp_scripts():
+	print_delete_temp()
+	for directory in os.listdir(TEMP_PATH):
+		if directory == "interfaces.txt":
+			os.remove(TEMP_PATH + directory)
+		elif directory != ".gitignore":
+			try:
+				if os.listdir(TEMP_PATH + directory):
+					for file in os.listdir(TEMP_PATH + directory):
+						os.remove(TEMP_PATH + directory + "/" + file)		
+				os.rmdir(TEMP_PATH + directory)
+			except Exception as e:
+				print_fail(e)
+				exit(1)
 
-						if devices[j].get_function() == 'spine':
-							li_leaf = "swp%d" % leaf_spine
-							ri_leaf = "swp%d" % spine_leaf
-
-							local_ip = SPINE_START_IP + str(spine_local_network_ip + spine_leaf) + '.' + str(spine_local_machine_ip + 1)
-							remote_ip = SPINE_START_IP + str(spine_local_network_ip + spine_leaf) + '.' + str(spine_local_machine_ip) 
-
-							devices[i].append_interface(Interface(local_interface=li_leaf, remote_interface=ri_leaf, remote_device=devices[j].get_device_name(),
-																	local_ip=local_ip, remote_ip=remote_ip, remote_as=devices[j].get_as_number(), interface_type="x"))	#visao da leaf
-
-							devices[j].append_interface(Interface(local_interface=ri_leaf, remote_interface=li_leaf, remote_device=devices[i].get_device_name(),
-																	local_ip=remote_ip, remote_ip=local_ip, remote_as=devices[i].get_as_number(), interface_type="x"))	#visao da spine
-
-							leaf_spine+= 1
-							spine_local_network_ip+= 100
-
-						elif devices[j].get_function() == 'host' and (leaf_host <= EDGE_NUM):	
-							li_leaf = "swp%d" % leaf_host
-							ri_leaf = "eth1"
-
-							if PROTOCOL == 'bgp':
-								local_ip = LEAF_START_IP + str(leaf_local_network_ip) + '.' + str(1)
-								remote_ip = LEAF_START_IP + str(leaf_local_network_ip) + '.' + str(leaf_local_machine_ip + 1)
-							elif PROTOCOL == 'evpn':
-								local_ip = devices[i].get_router_id();
-								remote_ip = "10.10.10" + '.' + str(vxlan_c + 1)
-								vxlan_c+= 1
-
-							devices[i].append_interface(Interface(local_interface=li_leaf, remote_interface=ri_leaf, remote_device=devices[j].get_device_name(),
-																	local_ip="0.0.0.0", remote_ip=remote_ip, remote_as=devices[j].get_as_number(), interface_type="dummy"))	#visao da leaf
-
-							devices[j].append_interface(Interface(local_interface=ri_leaf, remote_interface=li_leaf, remote_device=devices[i].get_device_name(),
-																	local_ip=remote_ip, remote_ip=local_ip, remote_as=devices[i].get_as_number(), interface_type="x"))	#visao do host
-							leaf_host+=	1
-							leaf_local_machine_ip+= 1
-							host_list.append(devices[j])
-							
-			spine_leaf+= 1
-			leaf_local_network_ip+= 1
-
-	if VERBOSE:
-		list()		
-
-def create_config_files():
-
+def create_temp_scripts():
 	if len(os.listdir(TEMP_PATH)) > 1:
-
-		print_delete_temp()
-		for directory in os.listdir(TEMP_PATH):
-			if directory == "interfaces.txt":
-				os.remove(TEMP_PATH + directory)
-			elif directory != ".gitignore":
-				try:
-					if os.listdir(TEMP_PATH + directory):
-						for file in os.listdir(TEMP_PATH + directory):
-							os.remove(TEMP_PATH + directory + "/" + file)		
-					os.rmdir(TEMP_PATH + directory)
-				except Exception as e:
-					print_fail(e)
-					exit(1)				
+		clean_temp_scripts()
 
 	print_create_temp()
-	
+	create_device_files(SPINES)
+	create_device_files(LEAFS)
+	for hst in HOSTS:
+		path = create_dir(hst.get_device_name())
+		render_file(template=HOST_CONFIG_TEMPLATE, 
+					path=(path + '/config_2.sh'),
+					device=hst,
+					protocol=PROTOCOL,
+					devices=HOSTS)
+
+	render_info_file(SPINES, LEAFS, HOSTS)
+
+def create_device_files(devices):
 	for device in devices:
-		try:
-			path = TEMP_PATH + device.get_device_name()
-			os.mkdir(path=path)
-			if device.get_function() != 'host':
-				write_zebra_file(device=device, path=path)
-					
-				if PROTOCOL == 'evpn':
-					write_rr_file(device=device, path=path)
-				elif PROTOCOL == 'bgp':	
-					write_bgpd_file(device=device, path=path)
+		path = create_dir(device.get_device_name())
+		if PROTOCOL == 'evpn':
+			render_file(template=RR_TEMPLATE, path=(path + '/bgpd_2.conf'), device=device, protocol=None, devices=None)
+		elif PROTOCOL == 'bgp':
+			render_file(template=BGPD_TEMPLATE, path=(path + '/bgpd_2.conf'), device=device, protocol=None, devices=None)
+		render_file(template=ZEBRA_TEMPLATE, path=(path + '/zebra_2.conf'), device=device, protocol=None, devices=None)
+		render_file(template=CONFIG_TEMPLATE, path=(path + '/config_2.sh'), device=device, protocol=PROTOCOL, devices=None)	
 
-			write_config_file(device=device, path=path)		
-		except Exception as e:
+def create_dir(dir_name):
+	try:
+		path = TEMP_PATH + dir_name
+		os.mkdir(path=path)
+	except Exception as e:
+		print_fail(e)
+		exit(1)
+	return path
+
+def render_file(template, path, device, protocol, devices):
+	try:		
+		#le arquivo do template
+		template = jinja2.Template(open(template).read())
+	except Exception as e:
 			print_fail(e)
-			exit(1)	
+			exit(1)
+	try:
+		#renderiza o template lido previamente com as informacoes extraidas da topologia
+		with open(path, 'w') as outfile:
+			outfile.write(template.render(device=device, protocol=protocol, devices=devices))
+	except Exception as e:
+		print_fail(e)
+		exit(1)
 
-def write_info_file(path):
+def render_info_file(spines, leafs, hosts):
 	print_write_info()
 	try:		
 		#le arquivo do template
 		template = jinja2.Template(open(INFO_TEMPLATE).read())
-		#renderiza o template lido previamente com as informacoes extraidas da topologia
-		try:
-			with open(path + "/interfaces.txt", 'w') as outfile:
-				outfile.write(template.render(devices=devices))
-		except Exception as e:
-			print_fail(e)
-			exit(1)
 	except Exception as e:
 			print_fail(e)
 			exit(1)
-
-def write_rr_file(device, path):
-	try:		
-		#le arquivo do template
-		template = jinja2.Template(open(RR_TEMPLATE).read())
+	try:
 		#renderiza o template lido previamente com as informacoes extraidas da topologia
-		try:
-			with open(path + "/bgpd.conf", 'w') as outfile:
-				outfile.write(template.render(device=device))
-		except Exception as e:
-			print_fail(e)
-			exit(1)
+		with open(TEMP_PATH + "/interfaces.txt", 'w') as outfile:
+			outfile.write(template.render(spines=spines, leafs=leafs, hosts=hosts))
 	except Exception as e:
-			print_fail(e)
-			exit(1)
-
-
-def write_bgpd_file(device, path):
-	try:		
-		#le arquivo do template
-		template = jinja2.Template(open(BGPD_TEMPLATE).read())
-		#renderiza o template lido previamente com as informacoes extraidas da topologia
-		try:
-			with open(path + "/bgpd.conf", 'w') as outfile:
-				outfile.write(template.render(device=device))
-		except Exception as e:
-			print_fail(e)
-			exit(1)
-	except Exception as e:
-			print_fail(e)
-			exit(1)
-
-def write_zebra_file(device, path):
-	try:		
-		#le arquivo do template
-		template = jinja2.Template(open(ZEBRA_TEMPLATE).read())
-		#renderiza o template lido previamente com as informacoes extraidas da topologia
-		try:
-			with open(path + "/zebra.conf", 'w') as outfile:
-				outfile.write(template.render(device=device))
-		except Exception as e:
-			print_fail(e)
-			exit(1)
-	except Exception as e:
-			print_fail(e)
-			exit(1)
-
-def write_config_file(device, path):
-	try:		
-		#le arquivo do template
-		template = jinja2.Template(open(CONFIG_TEMPLATE).read())
-		#renderiza o template lido previamente com as informacoes extraidas da topologia
-		try:
-			with open(path + "/config.sh", 'w') as outfile:
-				outfile.write(template.render(device=device, protocol=PROTOCOL, devices=devices))
-		except Exception as e:
-			print_fail(e)
-			exit(1)
-	except Exception as e:
-			print_fail(e)
-			exit(1)									
-
-def write_leaf_file(device, path):
-	try:		
-		#le arquivo do template
-		template = jinja2.Template(open(LEAF_TEMPLATE).read())
-		#renderiza o template lido previamente com as informacoes extraidas da topologia
-		try:
-			with open(path + "/leaf.sh", 'w') as outfile:
-				outfile.write(template.render(device=device))
-		except Exception as e:
-			print_fail(e)
-			exit(1)
-	except Exception as e:
-			print_fail(e)
-			exit(1)
+		print_fail(e)
+		exit(1)							
 
 def add_double_quotes(string):
 	return '"' + string + '"' 
@@ -377,9 +354,22 @@ def create_node(device):
 	return node
 
 def create_edge(src_dev, rmt_dev, src_i, rmt_i):
-	src_str = '"' + src_dev + '"' + ':' + '"' + src_i + '"'
-	rmt_str = '"' + rmt_dev + '"' + ':' + '"' + rmt_i + '"'
-	return pydotplus.graphviz.Edge(src=src_str, dst=rmt_str, obj_dict=None)
+	return pydotplus.graphviz.Edge(src=(add_double_quotes(src_dev) + ':' + add_double_quotes(src_i)), 
+								dst=(add_double_quotes(rmt_dev) + ':' + add_double_quotes(rmt_i)), obj_dict=None)
+
+def add_nodes(graph, devices):
+	for device in devices:
+		graph.add_node(create_node(device))
+
+def add_edges(graph, devices):
+	for device in devices:	
+		for interface in device.get_interfaces():
+			if interface.get_interface_type() != "bridge" and interface.get_interface_type() != "vxlan":
+				graph.add_edge(create_edge( src_dev=device.get_device_name(),
+											rmt_dev=interface.get_remote_device(),
+											src_i=interface.get_local_interface(),
+											rmt_i=interface.get_remote_interface()
+											))
 
 def write_graph():
 	graph = pydotplus.graphviz.Dot( graph_name='vx', 
@@ -387,32 +377,40 @@ def write_graph():
 									strict=False,
 									simplify=True)
 
-	for device in devices:
-		graph.add_node(create_node(device))
+	add_nodes(graph, SPINES)
+	add_nodes(graph, LEAFS)
+	add_nodes(graph, HOSTS)
 
-	for device in devices:	
-		for interface in device.get_interfaces():
-			if interface.get_interface_type() != ("bridge" and "vxlan"):
-				graph.add_edge(create_edge(src_dev=device.get_device_name(),
-											rmt_dev=interface.get_remote_device(),
-											src_i=interface.get_local_interface(),
-											rmt_i=interface.get_remote_interface()
-											))	
+	add_edges(graph, SPINES)
+	add_edges(graph, LEAFS)
+	add_edges(graph, HOSTS)
+
 	try:
 		print_write_graph()	
 		graph.write(path="./topology.dot", prog='dot', format='raw')
 	except Exception as e:
 		print_fail(e)
-		exit(1)	
+		exit(1)		
+
+#
+##  MAIN
+###
 
 def main():
 	os.system('color 7')		
 	parser()
-	create_machine()
-	create_interface()
-	create_config_files()
-	write_info_file(TEMP_PATH)
-	write_graph()
+	if CLEAN:
+		clean_files()
+		clean_temp_scripts()
+	else:	
+		create_machine()
+		spine_leaf_interface()
+		leaf_host_interface()
+		create_temp_scripts()
+		write_graph()
+
+	list(LEAFS)
+	list(HOSTS)
 
 if __name__ == "__main__":
 	main()

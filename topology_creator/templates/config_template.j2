@@ -1,31 +1,4 @@
 #!/bin/bash
-{% if device.get_function() == 'host' %}
-{% if protocol == 'bgp' %}
-echo ">>>Deleting Default Gateway"
-ip route del 0/0
-
-echo ">>>Creating eth1 Interface"
-{% for interface in device.get_interfaces() %}sudo ifconfig eth1 {{interface.get_local_ip()}}/24 up
-
-echo ">>>Adding New Default Gateway"
-sudo ip route add 0/0 via {{interface.get_remote_ip()}} dev {{interface.get_local_interface()}}{% endfor %}
-{% elif protocol == 'evpn' %}
-echo ">>>Deleting Default Gateway"
-ip route del 0/0
-
-echo ">>>Creating eth1 Interface"
-{% for interface in device.get_interfaces() %}sudo ifconfig {{interface.get_local_interface()}} {{interface.get_local_ip()}}/24 up
-
-echo ">>>Adding New Default Gateway"
-sudo ip route add 0/0 dev {{interface.get_local_interface()}}{% endfor %}
-
-sudo echo -e "\n#add for test\n{% for host in devices %}{% if host.get_function() == "host" and host.get_device_name() != device.get_device_name() %}{% for interface in host.get_interfaces()%}{{interface.get_local_ip()}}\t{{host.get_device_name()}}
-{% endfor %}{% endif %}{% endfor %}" | sudo tee -a /etc/hosts
-
-{% endif %}
-############################################################################################################################
-{% elif device.get_function() == 'spine' %}
-
 echo ">>>Installing FRRouting"
 curl -sf https://deb.frrouting.org/frr/keys.asc -o key.asc; RESP=$?
 if [[ $RESP != 0 ]]; then
@@ -64,51 +37,11 @@ sudo rm /etc/frr/frr.conf
 
 echo ">>>Restarting FRR Service"
 sudo systemctl restart frr.service
+{% if device.get_function() == 'spine' %}
 ############################################################################################################################
 {% elif device.get_function() == 'leaf' %}
-
-echo ">>>Installing FRRouting"
-curl -sf https://deb.frrouting.org/frr/keys.asc -o key.asc; RESP=$?
-if [[ $RESP != 0 ]]; then
-	echo -e ">>>Trying deb-us"
-	sudo curl -s https://deb-us.frrouting.org/frr/keys.asc | sudo apt-key add -
-	sudo echo deb https://deb-us.frrouting.org/frr $(lsb_release -s -c) "frr-stable" | sudo tee -a /etc/apt/sources.list.d/frr.list
-	sudo apt update && sudo apt install -qy frr frr-pythontools > /dev/null
-else
-	sudo apt-key add key.asc
-	sudo echo deb https://deb.frrouting.org/frr $(lsb_release -s -c) "frr-stable" | sudo tee -a /etc/apt/sources.list.d/frr.list
-	sudo apt-get update && sudo apt-get install -qy frr frr-pythontools > /dev/null
-fi
-
-wait $!
-
-NUM=$(sudo awk '/bgpd=no/{print NR}' /etc/frr/daemons)
-sudo sed -i "${NUM}c\bgpd=yes" /etc/frr/daemons
-
-echo ">>>Copying zebra.conf"
-sudo cp /vagrant/zebra.conf /etc/frr/zebra.conf
-
-echo ">>>Copying bgpd.conf"
-sudo cp /vagrant/bgpd.conf /etc/frr/bgpd.conf
-
-echo ">>>Setting IP Forward"
-sudo sysctl -w net.ipv4.ip_forward=1 > /dev/null
-
-echo ">>>Enabling FRR Service"
-sudo systemctl enable frr.service > /dev/null
-
-echo ">>>Starting FRR Service"
-sudo systemctl start frr.service > /dev/null
-
-echo ">>>Removing frr.conf"
-sudo rm /etc/frr/frr.conf
-
-echo ">>>Restarting FRR Service"
-sudo systemctl restart frr.service
-
 ############################################################################################################################
 {%if protocol == 'bgp' %}
-{% set bridge = "xx" %}
 echo ">>>Creating vlan10 Bridge"
 {% for interface in device.get_interfaces()%}{% if interface.get_interface_type() == "bridge" %}sudo brctl addbr {{interface.get_local_interface()}}
 {% for if in device.get_interfaces()%}{% if if.get_interface_type() == "dummy" %}sudo brctl addif {{interface.get_local_interface()}} {{if.get_local_interface()}}
@@ -119,22 +52,18 @@ echo ">>>Setting Bridge Address"
 echo ">>>Setting Bridge/Interfaces UP"
 {% for interface in device.get_interfaces()%}{% if interface.get_interface_type() != "x" %}sudo ip link set dev {{interface.get_local_interface()}} up
 {% endif %}{% endfor %}
-{% elif protocol == 'evpn' %}
 
-echo ">>>Creating vxlan10 Interface"
+{% elif protocol == 'evpn' %}
+echo ">>>Creating VXLAN Interfaces"
 {% for interface in device.get_interfaces()%}{% if interface.get_interface_type() == "vxlan" %}sudo ip link add {{interface.get_local_interface()}} type vxlan id {{interface.get_vni()}} dstport 4789 local {{device.get_router_id()}} nolearning
 {% endif %}{% endfor %}
 
-echo ">>>Creating br0 Bridge"
-sudo brctl addbr br0
-sudo brctl stp br0 off
-{% for interface in device.get_interfaces()%}{% if interface.get_interface_type() != "x" %}sudo brctl addif br0 {{interface.get_local_interface()}}
+echo ">>>Creating Bridges"
+{% for interface in device.get_interfaces()%}{% if interface.get_interface_type() == "bridge" %}sudo brctl addbr {{interface.get_local_interface()}}
+sudo brctl stp {{interface.get_local_interface()}} off
+{% for iface in device.get_interfaces()%}{% if iface.get_vni() == interface.get_vni() and iface.get_interface_type() != "bridge" %}sudo brctl addif {{interface.get_local_interface()}} {{iface.get_local_interface()}}
+{% endif %}{% endfor %}
+{% endif %}{% endfor %}{% for interface in device.get_interfaces()%}{% if interface.get_interface_type() != "x" %}sudo ip link set up dev {{interface.get_local_interface()}}
 {% endif %}{% endfor %}
 
-{% for interface in device.get_interfaces()%}{% if interface.get_interface_type() != "x" %}sudo ip link set up dev {{interface.get_local_interface()}}
-{% endif %}{% endfor %}
-
-sudo ip link set up dev br0
 {% endif %}{% endif %}
-
-

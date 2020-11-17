@@ -1,6 +1,6 @@
 !
 !Created by Rafel Basso
-!	Template revision v1.0.0
+!	Template revision v2.0.0
 !
 hostname {{device.get_device_name()}}
 password zebra
@@ -24,6 +24,7 @@ router bgp {{device.get_as_number()}}
  address-family ipv4 unicast
   redistribute connected
   neighbor fabric route-reflector-client
+  maximum-paths 64
  exit-address-family
 ! 
  address-family l2vpn evpn
@@ -43,11 +44,11 @@ router bgp {{device.get_as_number()}}
 !
  address-family ipv4 unicast
   redistribute connected
+  maximum-paths 64
  exit-address-family
 !  
  address-family l2vpn evpn
   neighbor fabric activate
-  !advertise-svi-ip
   advertise-all-vni
  exit-address-family
 {% endif %}

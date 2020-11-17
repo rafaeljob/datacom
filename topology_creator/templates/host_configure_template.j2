@@ -1,0 +1,23 @@
+#!/bin/bash
+{% if protocol == 'bgp' %}
+echo ">>>Deleting Default Gateway"
+ip route del 0/0
+
+echo ">>>Creating eth1 Interface"
+{% for interface in device.get_interfaces() %}sudo ifconfig eth1 {{interface.get_local_ip()}}/24 up
+
+echo ">>>Adding New Default Gateway"
+sudo ip route add 0/0 via {{interface.get_remote_ip()}} dev {{interface.get_local_interface()}}{% endfor %}
+{% elif protocol == 'evpn' %}
+echo ">>>Deleting Default Gateway"
+ip route del 0/0
+
+echo ">>>Creating eth1 Interface"
+{% for interface in device.get_interfaces() %}sudo ifconfig {{interface.get_local_interface()}} {{interface.get_local_ip()}}/24 up
+
+echo ">>>Adding New Default Gateway"
+sudo ip route add 0/0 dev {{interface.get_local_interface()}}{% endfor %}
+
+sudo echo -e "\n#add for test\n{% for host in devices %}{% if host.get_function() == "host" and host.get_device_name() != device.get_device_name() %}{% for interface in host.get_interfaces()%}{{interface.get_local_ip()}}\t{{host.get_device_name()}}
+{% endfor %}{% endif %}{% endfor %}" | sudo tee -a /etc/hosts
+{% endif %}

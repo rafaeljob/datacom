@@ -1,5 +1,11 @@
 ############################################
 
-{% for device in devices %}{% for interface in device.get_interfaces()%}{{ device.get_device_name() }}	{{ interface.get_local_interface() }}	{{ interface.get_local_ip() }}
+{% for spn in spines %}{% for interface in spn.get_interfaces()%}{{ spn.get_device_name() }}	{{ interface.get_local_interface() }}	{{ interface.get_local_ip() }}
+{% endfor %}
+{% endfor %}
+{% for lf in leafs %}{% for interface in lf.get_interfaces()%}{{ lf.get_device_name() }}	{{ interface.get_local_interface() }}	{{ interface.get_local_ip() }}
+{% endfor %}
+{% endfor %}
+{% for hst in hosts %}{% for interface in hst.get_interfaces()%}{{ hst.get_device_name() }}	{{ interface.get_local_interface() }}	{{ interface.get_local_ip() }}
 {% endfor %}
 {% endfor %}############################################
