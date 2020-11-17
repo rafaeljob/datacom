@@ -9,7 +9,7 @@ args=$*
 read -a args_array <<< $args
 size_array=${#args_array[@]}
 
-spine="1"; leaf="1"; host="1";
+spine="1"; leaf="1"; host="1"; lan="1";
 
 for i in $(seq 0 $(($size_array - 1)) ); do
 	case "${args_array[$i]}" in
@@ -18,6 +18,8 @@ for i in $(seq 0 $(($size_array - 1)) ); do
 		"-l") leaf="${args_array[$(($i + 1))]}" ;;
 
 		"-e") host="${args_array[$(($i + 1))]}" ;;
+
+		"-ln") lan="${args_array[$(($i + 1))]}" ;;
 	esac
 done
 
@@ -58,7 +60,7 @@ for leaf in $(seq -f "%02g" 1 $leaf); do
 	sudo vagrant ssh "leaf"$leaf -c "sudo chmod +x /vagrant/config.sh && sudo /vagrant/config.sh"
 done
 
-for host in $(seq -f "%02g" 1 $(($leaf * $host))); do
+for host in $(seq -f "%02g" 1 $(($leaf * $host * $lan))); do
 	echo -e "\n>>Running machine" "host"${host} "configs"
 	sudo vagrant ssh "host"$host -c "sudo chmod +x /vagrant/config.sh && sudo /vagrant/config.sh"
 done
