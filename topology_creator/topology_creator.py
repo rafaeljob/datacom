@@ -282,7 +282,7 @@ def create_temp_scripts():
 	for hst in HOSTS:
 		path = create_dir(hst.get_device_name())
 		render_file(template=HOST_CONFIG_TEMPLATE, 
-					path=(path + '/config_2.sh'),
+					path=(path + '/config.sh'),
 					device=hst,
 					protocol=PROTOCOL,
 					devices=HOSTS)
@@ -293,11 +293,11 @@ def create_device_files(devices):
 	for device in devices:
 		path = create_dir(device.get_device_name())
 		if PROTOCOL == 'evpn':
-			render_file(template=RR_TEMPLATE, path=(path + '/bgpd_2.conf'), device=device, protocol=None, devices=None)
+			render_file(template=RR_TEMPLATE, path=(path + '/bgpd.conf'), device=device, protocol=None, devices=None)
 		elif PROTOCOL == 'bgp':
-			render_file(template=BGPD_TEMPLATE, path=(path + '/bgpd_2.conf'), device=device, protocol=None, devices=None)
-		render_file(template=ZEBRA_TEMPLATE, path=(path + '/zebra_2.conf'), device=device, protocol=None, devices=None)
-		render_file(template=CONFIG_TEMPLATE, path=(path + '/config_2.sh'), device=device, protocol=PROTOCOL, devices=None)	
+			render_file(template=BGPD_TEMPLATE, path=(path + '/bgpd.conf'), device=device, protocol=None, devices=None)
+		render_file(template=ZEBRA_TEMPLATE, path=(path + '/zebra.conf'), device=device, protocol=None, devices=None)
+		render_file(template=CONFIG_TEMPLATE, path=(path + '/config.sh'), device=device, protocol=PROTOCOL, devices=None)	
 
 def create_dir(dir_name):
 	try:
