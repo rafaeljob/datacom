@@ -22,8 +22,9 @@ router bgp {{device.get_as_number()}}
 {% endfor %}!
 !
  address-family ipv4 unicast
-  redistribute connected
+  neighbor fabric activate
   neighbor fabric route-reflector-client
+  redistribute connected
   maximum-paths 64
  exit-address-family
 ! 
@@ -43,6 +44,7 @@ router bgp {{device.get_as_number()}}
  neighbor {{interface.get_remote_ip()}} peer-group fabric{% endif %}{% endif %}{% endfor %}
 !
  address-family ipv4 unicast
+  neighbor fabric activate
   redistribute connected
   maximum-paths 64
  exit-address-family

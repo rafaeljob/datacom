@@ -4,11 +4,11 @@ curl -sf https://deb.frrouting.org/frr/keys.asc -o key.asc; RESP=$?
 if [[ $RESP != 0 ]]; then
 	echo -e ">>>Trying deb-us"
 	sudo curl -s https://deb-us.frrouting.org/frr/keys.asc | sudo apt-key add -
-	sudo echo deb https://deb-us.frrouting.org/frr $(lsb_release -s -c) "frr-stable" | sudo tee -a /etc/apt/sources.list.d/frr.list
+	sudo echo deb https://deb-us.frrouting.org/frr $(lsb_release -s -c) "frr-6" | sudo tee -a /etc/apt/sources.list.d/frr.list
 	sudo apt update && sudo apt install -qy frr frr-pythontools > /dev/null
 else
 	sudo apt-key add key.asc
-	sudo echo deb https://deb.frrouting.org/frr $(lsb_release -s -c) "frr-stable" | sudo tee -a /etc/apt/sources.list.d/frr.list
+	sudo echo deb https://deb.frrouting.org/frr $(lsb_release -s -c) "frr-6" | sudo tee -a /etc/apt/sources.list.d/frr.list
 	sudo apt-get update && sudo apt-get install -qy frr frr-pythontools > /dev/null
 fi
 
