@@ -30,6 +30,10 @@ elif [[ $args == "-h" ]] || [[ $args == "--help" ]]; then
 	python3 -B topology_creator.py $args
 	python3 -B reader.py $args
 	exit 0
+elif [[ $args == "--clean" ]]; then
+	python3 -B topology_creator.py $args
+	python3 -B reader.py $args
+	exit 0
 elif [[ $args == *"-v"* ]] || [[ $args == *"--verbose"* ]]; then
 	python3 -B topology_creator.py $args
 	python3 -B reader.py topology.dot -p libvirt -v
