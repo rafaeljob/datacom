@@ -1,7 +1,7 @@
 #!/bin/bash
 {% if protocol == 'bgp' %}
 echo ">>>Deleting Default Gateway"
-ip route del 0/0
+sudo ip route del 0/0
 
 echo ">>>Creating eth1 Interface"
 {% for interface in device.get_interfaces() %}sudo ifconfig eth1 {{interface.get_local_ip()}}/24 up
