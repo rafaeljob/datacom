@@ -37,6 +37,9 @@ chmod +x /vagrant/config.sh
 echo ">>>Setting IP Forward"
 sysctl -w net.ipv4.ip_forward=1 > /dev/null
 
+echo ">>>Setting MultPath On"
+sysctl -w net.ipv4.fib_multipath_hash_policy=1 > /dev/null
+
 echo "********************************************"
 echo "   Finished LEAF Post Config - DATACOM      "
 echo "********************************************"

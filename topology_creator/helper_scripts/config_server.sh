@@ -29,9 +29,15 @@ echo ">>>Changing Permission config.sh"
 chmod +x /vagrant/config.sh
 
 #
-echo ">>>Installing TShark"
-echo "wireshark-common wireshark-common/install-setuid boolean true" | debconf-set-selections
-apt-get install tshark -qy
+#echo ">>>Installing TShark"
+#echo "wireshark-common wireshark-common/install-setuid boolean true" | debconf-set-selections
+#apt-get install tshark -qy
+
+echo ">>>Installing Traceroute"
+apt-get install traceroute
+
+echo ">>>Installing Scamper"
+apt-get install scamper
   
 echo "********************************************"
 echo "   Finished Server Post Config - DATACOM    "
