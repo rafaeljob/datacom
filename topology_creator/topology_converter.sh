@@ -39,12 +39,12 @@ elif [[ $args == *"-v"* ]] || [[ $args == *"--verbose"* ]]; then
 	python3 -B topology_creator.py $args
 	python3 -B reader.py topology.dot -p libvirt -v
 	echo -e "\n>>>>>>>>>>>>>>>>> VAGRANT UP <<<<<<<<<<<<<<<<<\n"
-	sudo vagrant up
+	vagrant up
 else
 	python3 -B topology_creator.py $args
 	python3 -B reader.py topology.dot -p libvirt
 	echo -e "\n>>>>>>>>>>>>>>>>> VAGRANT UP <<<<<<<<<<<<<<<<<\n"
-	sudo vagrant up
+	vagrant up
 fi
 
 wait $!
@@ -52,17 +52,17 @@ echo -e "\n>>>>>>>>>>>>>>>>> DONE WAITING VAGRANT UP <<<<<<<<<<<<<<<<<\n"
 
 for spine in $(seq -f "%02g" 1 $spine); do
 	echo -e "\n>>Running machine" "spine"${spine} "configs"
-	sudo vagrant ssh "spine"$spine -c "sudo chmod +x /vagrant/config.sh && sudo /vagrant/config.sh"
+	vagrant ssh "spine"$spine -c "sudo chmod +x /vagrant/config.sh && sudo /vagrant/config.sh"
 done
 
 for leaf in $(seq -f "%02g" 1 $leaf); do
 	echo -e "\n>>Running machine" "leaf"${leaf} "configs"
-	sudo vagrant ssh "leaf"$leaf -c "sudo chmod +x /vagrant/config.sh && sudo /vagrant/config.sh"
+	vagrant ssh "leaf"$leaf -c "sudo chmod +x /vagrant/config.sh && sudo /vagrant/config.sh"
 done
 
 for host in $(seq -f "%02g" 1 $(($leaf * $host * $lan))); do
 	echo -e "\n>>Running machine" "host"${host} "configs"
-	sudo vagrant ssh "host"$host -c "sudo chmod +x /vagrant/config.sh && sudo /vagrant/config.sh"
+	vagrant ssh "host"$host -c "sudo chmod +x /vagrant/config.sh && sudo /vagrant/config.sh"
 done
 
 finish=$(date +'%X')
